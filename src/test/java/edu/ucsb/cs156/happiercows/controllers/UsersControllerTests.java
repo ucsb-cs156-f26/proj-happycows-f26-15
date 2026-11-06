@@ -1,6 +1,7 @@
 package edu.ucsb.cs156.happiercows.controllers;
 
 import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Import;
@@ -15,7 +16,9 @@ import edu.ucsb.cs156.happiercows.testconfig.TestConfig;
 import org.springframework.boot.test.autoconfigure.orm.jpa.AutoConfigureDataJpa;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -24,6 +27,7 @@ import static org.springframework.security.test.web.servlet.request.SecurityMock
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Map;
@@ -145,5 +149,66 @@ public class UsersControllerTests extends ControllerTestCase {
     when(userRepository.findById(1L)).thenReturn(Optional.empty());
 
     mockMvc.perform(post("/api/admin/users/restore").param("userId", "1").with(csrf())).andExpect(status().isNotFound());
+  }
+
+  @WithMockUser(roles = {"USER"})
+  @Test
+  public void regular_user_cannot_set_chat_cooldown() throws Exception {
+    mockMvc.perform(post("/api/admin/users/chatcooldown")
+            .param("userId", "1")
+            .param("durationSeconds", "60")
+            .with(csrf()))
+        .andExpect(status().isForbidden());
+  }
+
+  @WithMockUser(roles = {"ADMIN"})
+  @Test
+  public void admin_user_can_set_chat_cooldown() throws Exception {
+    User user = spy(User.builder().id(1L).build());
+    when(userRepository.findById(1L)).thenReturn(Optional.of(user));
+    when(userRepository.save(any(User.class))).thenReturn(user);
+
+    Instant before = Instant.now();
+    MvcResult response = mockMvc.perform(post("/api/admin/users/chatcooldown")
+            .param("userId", "1")
+            .param("durationSeconds", "60")
+            .with(csrf()))
+        .andExpect(status().isOk()).andReturn();
+    Instant after = Instant.now();
+
+    ArgumentCaptor<Instant> captor = ArgumentCaptor.forClass(Instant.class);
+    verify(user, times(1)).setChatCooldownUntil(captor.capture());
+    verify(userRepository, times(1)).save(user);
+    assertTrue(!captor.getValue().isBefore(before.plusSeconds(60)));
+    assertTrue(!captor.getValue().isAfter(after.plusSeconds(60)));
+
+    Map<String, Object> json = responseToJson(response);
+    assertEquals("User with id 1 on chat cooldown for 60 seconds", json.get("message"));
+  }
+
+  @WithMockUser(roles = {"ADMIN"})
+  @Test
+  public void admin_user_cannot_set_nonpositive_chat_cooldown() throws Exception {
+    MvcResult response = mockMvc.perform(post("/api/admin/users/chatcooldown")
+            .param("userId", "1")
+            .param("durationSeconds", "0")
+            .with(csrf()))
+        .andExpect(status().isBadRequest()).andReturn();
+
+    verify(userRepository, never()).save(any(User.class));
+    Map<String, Object> json = responseToJson(response);
+    assertEquals("durationSeconds must be positive", json.get("message"));
+  }
+
+  @WithMockUser(roles = {"ADMIN"})
+  @Test
+  public void admin_user_cannot_set_chat_cooldown_for_invalid_user() throws Exception {
+    when(userRepository.findById(1L)).thenReturn(Optional.empty());
+
+    mockMvc.perform(post("/api/admin/users/chatcooldown")
+            .param("userId", "1")
+            .param("durationSeconds", "60")
+            .with(csrf()))
+        .andExpect(status().isNotFound());
   }
 }

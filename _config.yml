@@ -23,4 +23,4 @@ repo_name: "TBD"
 repo: ucsb-cs156-f26/proj-happycows-f26-15
 owner: ucsb-cs156-f26
 repo_name: proj-happycows-f26-15
-pull_requests: [{"author":{"id":"MDQ6VXNlcjY4MDI3NzQx","is_bot":false,"login":"cheng-roland","name":""},"headRefName":"rc-chat-cooldown-backend","number":19,"title":"rc - add chat cooldown field and admin endpoint","url":"https://github.com/ucsb-cs156-f26/proj-happycows-f26-15/pull/19"}]
+pull_requests: [{"author":{"id":"U_kgDOCeRk3A","is_bot":false,"login":"LeoChe126","name":"Leo Che "},"headRefName":"lc-issue-10-favicon","number":20,"title":"Leo Che: Restore HappyCows favicon","url":"https://github.com/ucsb-cs156-f26/proj-happycows-f26-15/pull/20"},{"author":{"id":"MDQ6VXNlcjY4MDI3NzQx","is_bot":false,"login":"cheng-roland","name":""},"headRefName":"rc-chat-cooldown-backend","number":19,"title":"rc - add chat cooldown field and admin endpoint","url":"https://github.com/ucsb-cs156-f26/proj-happycows-f26-15/pull/19"}]

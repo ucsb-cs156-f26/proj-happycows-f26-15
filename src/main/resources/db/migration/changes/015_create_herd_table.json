@@ -80,6 +80,38 @@
           }
         ]
       }
+    },
+    {
+      "changeSet": {
+        "id": "015-create-herd-farmer-index",
+        "author": "pc",
+        "comment": "Index herd by its owning farmer (game_id, user_id): every buy, sell, and health update looks up a farmer's herds, and not every database indexes foreign keys automatically.",
+        "preConditions": [
+          { "onFail": "MARK_RAN" },
+          {
+            "not": [
+              {
+                "indexExists": {
+                  "tableName": "herd",
+                  "indexName": "IDX_HERD_FARMER"
+                }
+              }
+            ]
+          }
+        ],
+        "changes": [
+          {
+            "createIndex": {
+              "tableName": "herd",
+              "indexName": "IDX_HERD_FARMER",
+              "columns": [
+                { "column": { "name": "game_id" } },
+                { "column": { "name": "user_id" } }
+              ]
+            }
+          }
+        ]
+      }
     }
   ]
 }

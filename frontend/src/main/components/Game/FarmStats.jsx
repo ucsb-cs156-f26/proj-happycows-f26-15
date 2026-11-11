@@ -8,6 +8,8 @@ import sadCow from "../../../assets/sad_cow.png";
 import angryCow from "../../../assets/angry_cow.png";
 import deadCow from "../../../assets/dead_cow.png";
 
+import "./FarmStats.css";
+
 const getCowSprite = (health) => {
   if (health <= 0) {
     return { image: deadCow, label: "Dead cow" };
@@ -61,12 +63,7 @@ const FarmStats = ({ farmer }) => {
             src={cowSprite.image}
             alt={cowSprite.label}
             data-testid="cow-health-sprite"
-            // Stryker disable next-line all: don't test CSS params
-            style={{
-              width: "120px",
-              height: "120px",
-              objectFit: "contain",
-            }}
+            className="cow-health-sprite"
           />
         </div>
         <Card.Text>💀 Cow Deaths: {farmer.cowDeaths}</Card.Text>

@@ -25,6 +25,13 @@ public class Game {
 
     private String name;
     private double cowPrice;
+
+    @Builder.Default
+    private double purchaseFee = 0.0;
+
+    @Builder.Default
+    private double sellingFee = 0.0;
+
     private double milkPrice;
     private double startingBalance;
     private LocalDateTime startingDate;

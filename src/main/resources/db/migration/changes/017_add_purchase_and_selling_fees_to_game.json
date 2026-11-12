@@ -1,0 +1,40 @@
+
+{
+  "databaseChangeLog": [
+    {
+      "changeSet": {
+        "id": "017-add-purchase-and-selling-fees-to-game",
+        "author": "graceenelson",
+        "changes": [
+          {
+            "addColumn": {
+              "tableName": "game",
+              "columns": [
+                {
+                  "column": {
+                    "name": "purchase_fee",
+                    "type": "DOUBLE PRECISION",
+                    "defaultValueNumeric": 0,
+                    "constraints": {
+                      "nullable": false
+                    }
+                  }
+                },
+                {
+                  "column": {
+                    "name": "selling_fee",
+                    "type": "DOUBLE PRECISION",
+                    "defaultValueNumeric": 0,
+                    "constraints": {
+                      "nullable": false
+                    }
+                  }
+                }
+              ]
+            }
+          }
+        ]
+      }
+    }
+  ]
+}

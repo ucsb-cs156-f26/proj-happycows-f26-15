@@ -109,14 +109,17 @@ public class FarmerController extends ApiController {
         .orElseThrow(
             () -> new EntityNotFoundException(Farmer.class, "gameId", gameId, "userId", userId));
 
-        if(farmer.getTotalWealth() >= (game.getCowPrice() * numCows)){
-          farmer.setTotalWealth(farmer.getTotalWealth() - (game.getCowPrice() * numCows));
+
+        double totalCost = (game.getCowPrice() + game.getPurchaseFee()) * numCows;
+
+        if (farmer.getTotalWealth() >= totalCost) {
+          farmer.setTotalWealth(farmer.getTotalWealth() - totalCost);
           farmer.setNumOfCows(farmer.getNumOfCows() + numCows);
           farmer.setCowsBought(farmer.getCowsBought() + numCows);
-        }
-        else{
+        } else {
           throw new NotEnoughMoneyException("You need more money!");
         }
+
         farmerRepository.save(farmer);
 
         farmerActivityService.recordActivityIfStudentMatch(
@@ -149,15 +152,17 @@ public class FarmerController extends ApiController {
             () -> new EntityNotFoundException(Farmer.class, "gameId", gameId, "userId", userId));
 
 
-        if(farmer.getNumOfCows() >= numCows ){
+        if (farmer.getNumOfCows() >= numCows) {
           double cowValue = game.getCowPrice() * farmer.getCowHealth() / 100;
-          farmer.setTotalWealth(farmer.getTotalWealth() + (cowValue * numCows));
+          double totalRevenue = (cowValue - game.getSellingFee()) * numCows;
+
+          farmer.setTotalWealth(farmer.getTotalWealth() + totalRevenue);
           farmer.setNumOfCows(farmer.getNumOfCows() - numCows);
           farmer.setCowsSold(farmer.getCowsSold() + numCows);
-        }
-        else{
+        } else {
           throw new NoCowsException("You do not have enough cows to sell!");
         }
+
         farmerRepository.save(farmer);
 
         farmerActivityService.recordActivityIfStudentMatch(

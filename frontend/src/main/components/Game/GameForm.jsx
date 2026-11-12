@@ -15,6 +15,9 @@ import CourseSelectDropdown from "main/components/Courses/CourseSelectDropdown";
 function GameForm({ initialGame, submitAction, buttonLabel = "Create" }) {
   let modifiedGame = initialGame ? { ...initialGame } : {}; // make a shallow copy of initialGame
 
+  modifiedGame.purchaseFee = modifiedGame.purchaseFee ?? 0;
+  modifiedGame.sellingFee = modifiedGame.sellingFee ?? 0;
+
   if (modifiedGame.startingDate) {
     modifiedGame.startingDate = modifiedGame.startingDate.split("T")[0];
   }
@@ -59,6 +62,8 @@ function GameForm({ initialGame, submitAction, buttonLabel = "Create" }) {
       const {
         startingBalance,
         cowPrice,
+        purchaseFee,
+        sellingFee,
         milkPrice,
         degradationRate,
         carryingCapacity,
@@ -70,6 +75,8 @@ function GameForm({ initialGame, submitAction, buttonLabel = "Create" }) {
       reset({
         startingBalance,
         cowPrice,
+        purchaseFee: purchaseFee ?? 0,
+        sellingFee: sellingFee ?? 0,
         milkPrice,
         degradationRate,
         carryingCapacity,
@@ -94,6 +101,8 @@ function GameForm({ initialGame, submitAction, buttonLabel = "Create" }) {
     name: "",
     startingBalance: defaultValuesData?.startingBalance || "10000",
     cowPrice: defaultValuesData?.cowPrice || "100",
+    purchaseFee: defaultValuesData?.purchaseFee ?? 0,
+    sellingFee: defaultValuesData?.sellingFee ?? 0,
     milkPrice: defaultValuesData?.milkPrice || "1",
     degradationRate: defaultValuesData?.degradationRate || 0.001,
     carryingCapacity: defaultValuesData?.carryingCapacity || 100,
@@ -271,6 +280,53 @@ function GameForm({ initialGame, submitAction, buttonLabel = "Create" }) {
             </OverlayTrigger>
             <Form.Control.Feedback type="invalid">
               {errors.milkPrice?.message}
+            </Form.Control.Feedback>
+          </Form.Group>
+        </Col>
+      </Row>
+
+      <Row className="flex justify-content-start" style={{ width: "80%" }}>
+        <Col md={6}>
+          <Form.Group className="mb-3">
+            <Form.Label htmlFor="purchaseFee">
+              Purchase Fee (per cow)
+            </Form.Label>
+            <Form.Control
+              data-testid={`${testid}-purchaseFee`}
+              id="purchaseFee"
+              type="number"
+              step="0.01"
+              defaultValue={DefaultVals.purchaseFee}
+              isInvalid={!!errors.purchaseFee}
+              {...register("purchaseFee", {
+                valueAsNumber: true,
+                required: "Purchase fee is required",
+                min: { value: 0, message: "Purchase fee must be ≥ 0" },
+              })}
+            />
+            <Form.Control.Feedback type="invalid">
+              {errors.purchaseFee?.message}
+            </Form.Control.Feedback>
+          </Form.Group>
+        </Col>
+        <Col md={6}>
+          <Form.Group className="mb-3">
+            <Form.Label htmlFor="sellingFee">Selling Fee (per cow)</Form.Label>
+            <Form.Control
+              data-testid={`${testid}-sellingFee`}
+              id="sellingFee"
+              type="number"
+              step="0.01"
+              defaultValue={DefaultVals.sellingFee}
+              isInvalid={!!errors.sellingFee}
+              {...register("sellingFee", {
+                valueAsNumber: true,
+                required: "Selling fee is required",
+                min: { value: 0, message: "Selling fee must be ≥ 0" },
+              })}
+            />
+            <Form.Control.Feedback type="invalid">
+              {errors.sellingFee?.message}
             </Form.Control.Feedback>
           </Form.Group>
         </Col>

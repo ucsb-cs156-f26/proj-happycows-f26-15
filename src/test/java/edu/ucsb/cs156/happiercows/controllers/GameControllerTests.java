@@ -2111,4 +2111,88 @@ public class GameControllerTests extends ControllerTestCase {
 
         verify(gameRepository, times(0)).save(any());
     }
+
+
+    @WithMockUser(roles = {"ADMIN"})
+    @Test
+    public void createGameTest_withPurchaseAndSellingFees() throws Exception {
+        CreateGameParams params = CreateGameParams.builder()
+                .name("Game With Fees")
+                .cowPrice(100.0)
+                .purchaseFee(1.0)
+                .sellingFee(2.0)
+                .milkPrice(5.0)
+                .startingBalance(1000.0)
+                .startingDate(LocalDateTime.parse("2026-11-12T00:00:00"))
+                .lastDate(LocalDateTime.parse("2027-03-12T00:00:00"))
+                .degradationRate(0.01)
+                .capacityPerUser(10)
+                .carryingCapacity(100)
+                .build();
+
+        when(gameRepository.save(any(Game.class)))
+                .thenAnswer(invocation -> invocation.getArgument(0));
+
+        MvcResult response = mockMvc.perform(
+                post("/api/game/new")
+                        .with(csrf())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(params)))
+                .andExpect(status().isOk())
+                .andReturn();
+
+        Game savedGame = objectMapper.readValue(
+                response.getResponse().getContentAsString(), Game.class);
+
+        assertEquals(1.0, savedGame.getPurchaseFee());
+        assertEquals(2.0, savedGame.getSellingFee());
+
+        ArgumentCaptor<Game> captor = ArgumentCaptor.forClass(Game.class);
+        verify(gameRepository).save(captor.capture());
+        assertEquals(1.0, captor.getValue().getPurchaseFee());
+        assertEquals(2.0, captor.getValue().getSellingFee());
+    }
+
+    @WithMockUser(roles = {"ADMIN"})
+    @Test
+    public void updateGameTest_withPurchaseAndSellingFees() throws Exception {
+        Game existingGame = Game.builder()
+                .id(1L)
+                .name("Game Before Fees")
+                .cowPrice(100.0)
+                .purchaseFee(0.0)
+                .sellingFee(0.0)
+                .build();
+
+        when(gameRepository.findById(1L))
+                .thenReturn(Optional.of(existingGame));
+
+        CreateGameParams params = CreateGameParams.builder()
+                .name("Game With Updated Fees")
+                .cowPrice(100.0)
+                .purchaseFee(1.5)
+                .sellingFee(2.5)
+                .milkPrice(5.0)
+                .startingBalance(1000.0)
+                .startingDate(LocalDateTime.parse("2026-11-12T00:00:00"))
+                .lastDate(LocalDateTime.parse("2027-03-12T00:00:00"))
+                .degradationRate(0.01)
+                .capacityPerUser(10)
+                .carryingCapacity(100)
+                .build();
+
+        mockMvc.perform(
+                put("/api/game/update?id=1")
+                        .with(csrf())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(params)))
+                .andExpect(status().isNoContent());
+
+        ArgumentCaptor<Game> captor = ArgumentCaptor.forClass(Game.class);
+        verify(gameRepository).save(captor.capture());
+
+        assertEquals(1.5, captor.getValue().getPurchaseFee());
+        assertEquals(2.5, captor.getValue().getSellingFee());
+    }
+
 }

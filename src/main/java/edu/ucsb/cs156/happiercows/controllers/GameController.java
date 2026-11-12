@@ -165,6 +165,8 @@ public class GameController extends ApiController {
 
         updated.setName(params.getName());
         updated.setCowPrice(params.getCowPrice());
+        updated.setPurchaseFee(params.getPurchaseFee());
+        updated.setSellingFee(params.getSellingFee());
         updated.setMilkPrice(params.getMilkPrice());
         updated.setStartingBalance(params.getStartingBalance());
         updated.setStartingDate(params.getStartingDate());
@@ -192,6 +194,14 @@ public class GameController extends ApiController {
 
         if (params.getCowPrice() < 0.01) {
             throw new IllegalArgumentException("Cow Price cannot be less than 0.01");
+        }
+
+        if (!Double.isFinite(params.getPurchaseFee()) || params.getPurchaseFee() < 0) {
+            throw new IllegalArgumentException("Purchase Fee must be a non-negative finite number");
+        }
+
+        if (!Double.isFinite(params.getSellingFee()) || params.getSellingFee() < 0) {
+            throw new IllegalArgumentException("Selling Fee must be a non-negative finite number");
         }
 
         if (params.getMilkPrice() < 0.01) {
@@ -237,6 +247,8 @@ public class GameController extends ApiController {
         var builder = Game.builder()
                 .name(params.getName())
                 .cowPrice(params.getCowPrice())
+                .purchaseFee(params.getPurchaseFee())
+                .sellingFee(params.getSellingFee())
                 .milkPrice(params.getMilkPrice())
                 .startingBalance(params.getStartingBalance())
                 .startingDate(params.getStartingDate())
@@ -266,6 +278,14 @@ public class GameController extends ApiController {
 
         if (params.getCowPrice() < 0.01) {
             throw new IllegalArgumentException("Cow Price cannot be less than 0.01");
+        }
+
+        if (!Double.isFinite(params.getPurchaseFee()) || params.getPurchaseFee() < 0) {
+            throw new IllegalArgumentException("Purchase Fee must be a non-negative finite number");
+        }
+
+        if (!Double.isFinite(params.getSellingFee()) || params.getSellingFee() < 0) {
+            throw new IllegalArgumentException("Selling Fee must be a non-negative finite number");
         }
 
         if (params.getMilkPrice() < 0.01) {

@@ -19,10 +19,12 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 
+import java.time.Instant;
+
 @Tag(name=&quot;User information (admin only)&quot;)
 @RequestMapping(&quot;/api/admin/users&quot;)
 @RestController
-<span class="fc" id="L25">public class UsersController extends ApiController {</span>
+<span class="fc" id="L27">public class UsersController extends ApiController {</span>
     @Autowired
     UserRepository userRepository;
 
@@ -34,9 +36,9 @@ import io.swagger.v3.oas.annotations.Parameter;
     @GetMapping(&quot;&quot;)
     public ResponseEntity&lt;String&gt; users()
             throws JsonProcessingException {
-<span class="fc" id="L37">        Iterable&lt;User&gt; users = userRepository.findAll();</span>
-<span class="fc" id="L38">        String body = mapper.writeValueAsString(users);</span>
-<span class="fc" id="L39">        return ResponseEntity.ok().body(body);</span>
+<span class="fc" id="L39">        Iterable&lt;User&gt; users = userRepository.findAll();</span>
+<span class="fc" id="L40">        String body = mapper.writeValueAsString(users);</span>
+<span class="fc" id="L41">        return ResponseEntity.ok().body(body);</span>
     }
     
     @Operation(summary = &quot;Suspend a user by id&quot;)
@@ -44,22 +46,40 @@ import io.swagger.v3.oas.annotations.Parameter;
     @PostMapping(&quot;/suspend&quot;)
     public Object suspendUser(@Parameter(name=&quot;userId&quot;) @RequestParam long userId ) throws JsonProcessingException {
 
-<span class="fc" id="L47">        User user = userRepository.findById(userId).orElseThrow(() -&gt; new EntityNotFoundException(User.class, userId));</span>
+<span class="fc" id="L49">        User user = userRepository.findById(userId).orElseThrow(() -&gt; new EntityNotFoundException(User.class, userId));</span>
 
-<span class="fc" id="L49">        user.setSuspended(true);</span>
-<span class="fc" id="L50">        userRepository.save(user);</span>
-<span class="fc" id="L51">        return genericMessage(&quot;User with id %d suspended&quot;.formatted(userId));</span>
+<span class="fc" id="L51">        user.setSuspended(true);</span>
+<span class="fc" id="L52">        userRepository.save(user);</span>
+<span class="fc" id="L53">        return genericMessage(&quot;User with id %d suspended&quot;.formatted(userId));</span>
     }
 
     @Operation(summary=&quot;Restore a user by id&quot;)
     @PreAuthorize(&quot;hasRole('ROLE_ADMIN')&quot;)
     @PostMapping(&quot;/restore&quot;)
     public Object restoreUser(@Parameter(name=&quot;userId&quot;) @RequestParam long userId ) throws JsonProcessingException {
-<span class="fc" id="L58">        User user = userRepository.findById(userId).orElseThrow(() -&gt; new EntityNotFoundException(User.class, userId));</span>
+<span class="fc" id="L60">        User user = userRepository.findById(userId).orElseThrow(() -&gt; new EntityNotFoundException(User.class, userId));</span>
 
-<span class="fc" id="L60">        user.setSuspended(false);</span>
-<span class="fc" id="L61">        userRepository.save(user);</span>
-<span class="fc" id="L62">        return genericMessage(&quot;User with id %d restored&quot;.formatted(userId));</span>
+<span class="fc" id="L62">        user.setSuspended(false);</span>
+<span class="fc" id="L63">        userRepository.save(user);</span>
+<span class="fc" id="L64">        return genericMessage(&quot;User with id %d restored&quot;.formatted(userId));</span>
+    }
+
+    @Operation(summary = &quot;Put a user on chat cooldown&quot;)
+    @PreAuthorize(&quot;hasRole('ROLE_ADMIN')&quot;)
+    @PostMapping(&quot;/chatcooldown&quot;)
+    public ResponseEntity&lt;Object&gt; setChatCooldown(
+            @Parameter(name = &quot;userId&quot;) @RequestParam long userId,
+            @Parameter(name = &quot;durationSeconds&quot;) @RequestParam long durationSeconds) {
+<span class="fc bfc" id="L73" title="All 2 branches covered.">        if (durationSeconds &lt;= 0) {</span>
+<span class="fc" id="L74">            return ResponseEntity.badRequest()</span>
+<span class="fc" id="L75">                    .body(genericMessage(&quot;durationSeconds must be positive&quot;));</span>
+        }
+<span class="fc" id="L77">        User user = userRepository.findById(userId)</span>
+<span class="fc" id="L78">                .orElseThrow(() -&gt; new EntityNotFoundException(User.class, userId));</span>
+<span class="fc" id="L79">        user.setChatCooldownUntil(Instant.now().plusSeconds(durationSeconds));</span>
+<span class="fc" id="L80">        userRepository.save(user);</span>
+<span class="fc" id="L81">        return ResponseEntity.ok(genericMessage(</span>
+<span class="fc" id="L82">                &quot;User with id %d on chat cooldown for %d seconds&quot;.formatted(userId, durationSeconds)));</span>
     }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.15.202606040825</span></div></body></html>

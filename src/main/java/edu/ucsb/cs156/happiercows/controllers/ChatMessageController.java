@@ -21,10 +21,14 @@ import edu.ucsb.cs156.happiercows.repositories.ChatMessageRepository;
 import edu.ucsb.cs156.happiercows.entities.User;
 import edu.ucsb.cs156.happiercows.entities.Farmer;
 import edu.ucsb.cs156.happiercows.repositories.FarmerRepository;
+import edu.ucsb.cs156.happiercows.repositories.UserRepository;
 
 import org.springframework.security.core.Authentication;
 
 
+import java.time.Duration;
+import java.time.Instant;
+import java.util.Map;
 import java.util.Optional;
 
 @Tag(name = "Chat Message")
@@ -38,6 +42,9 @@ public class ChatMessageController extends ApiController{
 
     @Autowired
     private FarmerRepository farmerRepository;
+
+    @Autowired
+    private UserRepository userRepository;
 
     @Autowired
     ObjectMapper mapper;
@@ -121,6 +128,17 @@ public class ChatMessageController extends ApiController{
             if(!farmer.getGame().isShowChat()){
                 return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
             }
+        }
+
+        Instant cooldownUntil = userRepository.findById(userId)
+                .map(User::getChatCooldownUntil)
+                .orElse(null);
+        Instant now = Instant.now();
+        if (cooldownUntil != null && cooldownUntil.isAfter(now)) {
+            long remainingSeconds = (Duration.between(now, cooldownUntil).toMillis() + 999) / 1000;
+            return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS).body(Map.of(
+                    "message", "You are on chat cooldown for %d more seconds".formatted(remainingSeconds),
+                    "remainingSeconds", remainingSeconds));
         }
 
         // Create the chat message

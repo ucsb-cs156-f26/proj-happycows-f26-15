@@ -697,4 +697,113 @@ public class FarmerControllerTests extends ControllerTestCase {
         Map<String, Object> jsonResponse = responseToJson(response);
         assertEquals(expectedJson, jsonResponse);
     }
+    @WithMockUser(roles = {"USER"})
+    @Test
+    public void test_BuyCow_with_purchase_fee_for_two_cows() throws Exception {
+        testGame.setCowPrice(100);
+        testGame.setPurchaseFee(1);
+        Farmer farmer = getTestFarmer();
+
+        when(gameRepository.findById(1L)).thenReturn(Optional.of(testGame));
+        when(farmerRepository.findByGameIdAndUserId(1L, 1L))
+                .thenReturn(Optional.of(farmer));
+
+        MvcResult response = mockMvc.perform(put("/api/farmer/buy?gameId=1&numCows=2")
+                        .with(csrf()))
+                .andExpect(status().isOk()).andReturn();
+
+        assertEquals(98.0, farmer.getTotalWealth(), 0.001);
+        assertEquals(3, farmer.getNumOfCows());
+        assertEquals(2, farmer.getCowsBought());
+        verify(farmerRepository).save(farmer);
+        assertEquals(mapper.writeValueAsString(farmer), response.getResponse().getContentAsString());
+    }
+
+    @WithMockUser(roles = {"USER"})
+    @Test
+    public void test_SellCow_with_selling_fee_for_two_healthy_cows() throws Exception {
+        testGame.setCowPrice(100);
+        testGame.setSellingFee(2);
+        Farmer farmer = getTestFarmer();
+        farmer.setNumOfCows(2);
+        farmer.setCowHealth(100);
+
+        when(gameRepository.findById(1L)).thenReturn(Optional.of(testGame));
+        when(farmerRepository.findByGameIdAndUserId(1L, 1L))
+                .thenReturn(Optional.of(farmer));
+
+        MvcResult response = mockMvc.perform(put("/api/farmer/sell?gameId=1&numCows=2")
+                        .with(csrf()))
+                .andExpect(status().isOk()).andReturn();
+
+        assertEquals(496.0, farmer.getTotalWealth(), 0.001);
+        assertEquals(0, farmer.getNumOfCows());
+        assertEquals(2, farmer.getCowsSold());
+        verify(farmerRepository).save(farmer);
+        assertEquals(mapper.writeValueAsString(farmer), response.getResponse().getContentAsString());
+    }
+
+    @WithMockUser(roles = {"USER"})
+    @Test
+    public void test_SellCow_with_selling_fee_and_partial_health() throws Exception {
+        testGame.setCowPrice(100);
+        testGame.setSellingFee(2);
+        Farmer farmer = getTestFarmer();
+        farmer.setNumOfCows(2);
+        farmer.setCowHealth(50);
+
+        when(gameRepository.findById(1L)).thenReturn(Optional.of(testGame));
+        when(farmerRepository.findByGameIdAndUserId(1L, 1L))
+                .thenReturn(Optional.of(farmer));
+
+        mockMvc.perform(put("/api/farmer/sell?gameId=1&numCows=2")
+                        .with(csrf()))
+                .andExpect(status().isOk());
+
+        assertEquals(396.0, farmer.getTotalWealth(), 0.001);
+        assertEquals(0, farmer.getNumOfCows());
+        assertEquals(2, farmer.getCowsSold());
+        verify(farmerRepository).save(farmer);
+    }
+
+    @WithMockUser(roles = {"USER"})
+    @Test
+    public void test_BuyCow_purchase_fee_causes_insufficient_funds() throws Exception {
+        testGame.setCowPrice(100);
+        testGame.setPurchaseFee(1);
+        Farmer farmer = getTestFarmer();
+        farmer.setTotalWealth(100);
+
+        when(gameRepository.findById(1L)).thenReturn(Optional.of(testGame));
+        when(farmerRepository.findByGameIdAndUserId(1L, 1L))
+                .thenReturn(Optional.of(farmer));
+
+        MvcResult response = mockMvc.perform(put("/api/farmer/buy?gameId=1&numCows=1")
+                        .with(csrf()))
+                .andExpect(status().isBadRequest()).andReturn();
+
+        assertEquals("NotEnoughMoneyException", responseToJson(response).get("type"));
+        assertEquals(100.0, farmer.getTotalWealth(), 0.001);
+        assertEquals(1, farmer.getNumOfCows());
+        verify(farmerRepository, never()).save(any());
+    }
+
+    @WithMockUser(roles = {"USER"})
+    @Test
+    public void test_BuyCow_zero_purchase_fee_preserves_existing_cost() throws Exception {
+        testGame.setCowPrice(100);
+        Farmer farmer = getTestFarmer();
+
+        when(gameRepository.findById(1L)).thenReturn(Optional.of(testGame));
+        when(farmerRepository.findByGameIdAndUserId(1L, 1L))
+                .thenReturn(Optional.of(farmer));
+
+        mockMvc.perform(put("/api/farmer/buy?gameId=1&numCows=2")
+                        .with(csrf()))
+                .andExpect(status().isOk());
+
+        assertEquals(100.0, farmer.getTotalWealth(), 0.001);
+        assertEquals(3, farmer.getNumOfCows());
+        verify(farmerRepository).save(farmer);
+    }
 }

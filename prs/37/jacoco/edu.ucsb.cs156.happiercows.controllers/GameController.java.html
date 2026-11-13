@@ -1,0 +1,528 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>GameController.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">happycows</a> &gt; <a href="index.source.html" class="el_package">edu.ucsb.cs156.happiercows.controllers</a> &gt; <span class="el_source">GameController.java</span></div><h1>GameController.java</h1><pre class="source lang-java linenums">package edu.ucsb.cs156.happiercows.controllers;
+
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import edu.ucsb.cs156.happiercows.entities.GameStats;
+import edu.ucsb.cs156.happiercows.entities.Game;
+import edu.ucsb.cs156.happiercows.entities.GamePlus;
+import edu.ucsb.cs156.happiercows.entities.User;
+import edu.ucsb.cs156.happiercows.entities.Farmer;
+import edu.ucsb.cs156.happiercows.errors.EntityNotFoundException;
+import edu.ucsb.cs156.happiercows.models.CreateGameParams;
+import edu.ucsb.cs156.happiercows.models.DashboardSettingsParams;
+import edu.ucsb.cs156.happiercows.models.HealthUpdateStrategyList;
+import edu.ucsb.cs156.happiercows.errors.CourseAccessDeniedException;
+import edu.ucsb.cs156.happiercows.repositories.GameStatsRepository;
+import edu.ucsb.cs156.happiercows.repositories.GameRepository;
+import edu.ucsb.cs156.happiercows.repositories.FarmerRepository;
+import edu.ucsb.cs156.happiercows.services.CourseAccessService;
+import edu.ucsb.cs156.happiercows.strategies.CowHealthUpdateStrategies;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import org.springframework.beans.factory.annotation.Value;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.web.bind.annotation.*;
+import edu.ucsb.cs156.happiercows.services.GamePlusBuilderService;
+import edu.ucsb.cs156.happiercows.errors.CommonsHIddenException;
+
+
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.stream.Collectors;
+import java.util.stream.StreamSupport;
+
+
+<span class="fc" id="L43">@Slf4j</span>
+@Tag(name = &quot;Game&quot;)
+@RequestMapping(&quot;/api/game&quot;)
+@RestController
+<span class="fc" id="L47">public class GameController extends ApiController {</span>
+    @Autowired
+    private GameRepository gameRepository;
+
+    @Autowired
+    private FarmerRepository farmerRepository;
+
+    @Autowired
+    ObjectMapper mapper;
+
+    @Autowired
+    GamePlusBuilderService gamePlusBuilderService;
+
+    @Autowired
+    GameStatsRepository gameStatsRepository;
+
+    @Autowired
+    CourseAccessService courseAccessService;
+
+    @Value(&quot;${app.game.default.startingBalance}&quot;)
+    private double defaultStartingBalance;
+
+    @Value(&quot;${app.game.default.cowPrice}&quot;)
+    private double defaultCowPrice;
+
+    @Value(&quot;${app.game.default.milkPrice}&quot;)
+    private double defaultMilkPrice;
+
+    @Value(&quot;${app.game.default.degradationRate}&quot;)
+    private double defaultDegradationRate;
+
+    @Value(&quot;${app.game.default.carryingCapacity}&quot;)
+    private int defaultCarryingCapacity;
+
+    @Value(&quot;${app.game.default.capacityPerUser}&quot;)
+    private int defaultCapacityPerUser;
+
+    @Value(&quot;${app.game.default.aboveCapacityHealthUpdateStrategy}&quot;)
+    private String defaultAboveCapacityHealthUpdateStrategy;
+
+    @Value(&quot;${app.game.default.belowCapacityHealthUpdateStrategy}&quot;)
+    private String defaultBelowCapacityHealthUpdateStrategy;
+
+    @Operation(summary = &quot;Get default common values&quot;)
+    @GetMapping(&quot;/defaults&quot;)
+    public ResponseEntity&lt;Game&gt; getDefaultGame() throws JsonProcessingException {
+<span class="fc" id="L93">        log.info(&quot;getDefaultGame()...&quot;);</span>
+
+<span class="fc" id="L95">        Game defaultGame = Game.builder()</span>
+<span class="fc" id="L96">                .startingBalance(defaultStartingBalance)</span>
+<span class="fc" id="L97">                .cowPrice(defaultCowPrice)</span>
+<span class="fc" id="L98">                .milkPrice(defaultMilkPrice)</span>
+<span class="fc" id="L99">                .degradationRate(defaultDegradationRate)</span>
+<span class="fc" id="L100">                .carryingCapacity(defaultCarryingCapacity)</span>
+<span class="fc" id="L101">                .capacityPerUser(defaultCapacityPerUser)</span>
+<span class="fc" id="L102">                .aboveCapacityHealthUpdateStrategy(CowHealthUpdateStrategies.valueOf(defaultAboveCapacityHealthUpdateStrategy))</span>
+<span class="fc" id="L103">                .belowCapacityHealthUpdateStrategy(CowHealthUpdateStrategies.valueOf(defaultBelowCapacityHealthUpdateStrategy))</span>
+<span class="fc" id="L104">                .hidden(false)</span>
+<span class="fc" id="L105">                .build();</span>
+
+<span class="fc" id="L107">        return ResponseEntity.ok().body(defaultGame);</span>
+    }
+
+    @Operation(summary = &quot;Get a list of all game&quot;)
+    @GetMapping(&quot;/all&quot;)
+    public ResponseEntity&lt;String&gt; getGame() throws JsonProcessingException {
+<span class="fc" id="L113">        log.info(&quot;getGame()...&quot;);</span>
+<span class="fc" id="L114">        Iterable&lt;Game&gt; game = gameRepository.findAll();</span>
+<span class="fc" id="L115">        String body = mapper.writeValueAsString(game);</span>
+<span class="fc" id="L116">        return ResponseEntity.ok().body(body);</span>
+    }
+
+    @Operation(summary = &quot;Get a list of all game and number of cows/users, newest first&quot;)
+    @GetMapping(&quot;/allplus&quot;)
+    public ResponseEntity&lt;String&gt; getGamePlus() throws JsonProcessingException {
+<span class="fc" id="L122">        log.info(&quot;getGamePlus()...&quot;);</span>
+<span class="fc" id="L123">        Iterable&lt;Game&gt; gameListIter = gameRepository.findAll();</span>
+
+        // findAll() has no defined order, so sort newest first for a deterministic response
+<span class="fc" id="L126">        List&lt;Game&gt; gameList = new ArrayList&lt;&gt;();</span>
+<span class="fc" id="L127">        gameListIter.forEach(gameList::add);</span>
+<span class="fc" id="L128">        gameList.sort(Comparator.comparingLong(Game::getId).reversed());</span>
+
+<span class="fc" id="L130">        Iterable&lt;GamePlus&gt; gamePlusList = gamePlusBuilderService.convertToGamePlus(gameList);</span>
+
+<span class="fc" id="L132">        String body = mapper.writeValueAsString(gamePlusList);</span>
+<span class="fc" id="L133">        return ResponseEntity.ok().body(body);</span>
+    }
+
+    @Operation(summary = &quot;Get the number of cows/users in a game&quot;)
+    @PreAuthorize(&quot;hasRole('ROLE_USER')&quot;)
+    @GetMapping(&quot;/plus&quot;)
+    public GamePlus getGamePlusById(
+            @Parameter(name=&quot;id&quot;) @RequestParam long id) throws JsonProcessingException {
+<span class="fc" id="L141">                GamePlus gamePlus = gamePlusBuilderService.toGamePlus(gameRepository.findById(id)</span>
+<span class="fc" id="L142">                .orElseThrow(() -&gt; new EntityNotFoundException(&quot;Game&quot;, id)));</span>
+
+<span class="fc" id="L144">        return gamePlus;</span>
+    }
+
+    @Operation(summary = &quot;Update a game&quot;)
+    @PreAuthorize(&quot;hasRole('ROLE_ADMIN')&quot;)
+    @PutMapping(&quot;/update&quot;)
+    public ResponseEntity&lt;String&gt; updateGame(
+            @Parameter(name=&quot;id&quot;) @RequestParam long id,
+            @Parameter(name=&quot;request body&quot;) @RequestBody CreateGameParams params
+    ) {
+<span class="fc" id="L154">        Optional&lt;Game&gt; existing = gameRepository.findById(id);</span>
+
+        Game updated;
+        HttpStatus status;
+
+<span class="fc bfc" id="L159" title="All 2 branches covered.">        if (existing.isPresent()) {</span>
+<span class="fc" id="L160">            updated = existing.get();</span>
+<span class="fc" id="L161">            status = HttpStatus.NO_CONTENT;</span>
+        } else {
+<span class="fc" id="L163">            updated = new Game();</span>
+<span class="fc" id="L164">            status = HttpStatus.CREATED;</span>
+        }
+
+<span class="fc" id="L167">        updated.setName(params.getName());</span>
+<span class="fc" id="L168">        updated.setCowPrice(params.getCowPrice());</span>
+<span class="fc" id="L169">        updated.setPurchaseFee(params.getPurchaseFee());</span>
+<span class="fc" id="L170">        updated.setSellingFee(params.getSellingFee());</span>
+<span class="fc" id="L171">        updated.setMilkPrice(params.getMilkPrice());</span>
+<span class="fc" id="L172">        updated.setStartingBalance(params.getStartingBalance());</span>
+<span class="fc" id="L173">        updated.setStartingDate(params.getStartingDate());</span>
+<span class="fc" id="L174">        updated.setLastDate(params.getLastDate());</span>
+<span class="fc" id="L175">        updated.setShowLeaderboard(params.getShowLeaderboard());</span>
+<span class="fc" id="L176">        updated.setShowChat(params.getShowChat());</span>
+<span class="fc" id="L177">        updated.setDegradationRate(params.getDegradationRate());</span>
+<span class="fc" id="L178">        updated.setCapacityPerUser(params.getCapacityPerUser());</span>
+<span class="fc" id="L179">        updated.setCarryingCapacity(params.getCarryingCapacity());</span>
+<span class="fc bfc" id="L180" title="All 2 branches covered.">        if (params.getAboveCapacityHealthUpdateStrategy() != null) {</span>
+<span class="fc" id="L181">            updated.setAboveCapacityHealthUpdateStrategy(CowHealthUpdateStrategies.valueOf(params.getAboveCapacityHealthUpdateStrategy()));</span>
+        }
+<span class="fc bfc" id="L183" title="All 2 branches covered.">        if (params.getBelowCapacityHealthUpdateStrategy() != null) {</span>
+<span class="fc" id="L184">            updated.setBelowCapacityHealthUpdateStrategy(CowHealthUpdateStrategies.valueOf(params.getBelowCapacityHealthUpdateStrategy()));</span>
+        }
+
+<span class="fc bfc" id="L187" title="All 2 branches covered.">        if (params.getDegradationRate() &lt; 0) {</span>
+<span class="fc" id="L188">            throw new IllegalArgumentException(&quot;Degradation Rate cannot be negative&quot;);</span>
+        }
+
+        // Reference: frontend/src/main/components/Game/GameForm.js
+<span class="fc bfc" id="L192" title="All 2 branches covered.">        if (params.getName().equals(&quot;&quot;)) {</span>
+<span class="fc" id="L193">            throw new IllegalArgumentException(&quot;Name cannot be empty&quot;);</span>
+        }
+
+<span class="fc bfc" id="L196" title="All 2 branches covered.">        if (params.getCowPrice() &lt; 0.01) {</span>
+<span class="fc" id="L197">            throw new IllegalArgumentException(&quot;Cow Price cannot be less than 0.01&quot;);</span>
+        }
+
+<span class="pc bpc" id="L200" title="2 of 4 branches missed.">        if (!Double.isFinite(params.getPurchaseFee()) || params.getPurchaseFee() &lt; 0) {</span>
+<span class="nc" id="L201">            throw new IllegalArgumentException(&quot;Purchase Fee must be a non-negative finite number&quot;);</span>
+        }
+
+<span class="pc bpc" id="L204" title="2 of 4 branches missed.">        if (!Double.isFinite(params.getSellingFee()) || params.getSellingFee() &lt; 0) {</span>
+<span class="nc" id="L205">            throw new IllegalArgumentException(&quot;Selling Fee must be a non-negative finite number&quot;);</span>
+        }
+
+<span class="fc bfc" id="L208" title="All 2 branches covered.">        if (params.getMilkPrice() &lt; 0.01) {</span>
+<span class="fc" id="L209">            throw new IllegalArgumentException(&quot;Milk Price cannot be less than 0.01&quot;);</span>
+        }
+
+<span class="fc bfc" id="L212" title="All 2 branches covered.">        if (params.getStartingBalance() &lt; 0) {</span>
+<span class="fc" id="L213">            throw new IllegalArgumentException(&quot;Starting Balance cannot be negative&quot;);</span>
+        }
+
+<span class="fc bfc" id="L216" title="All 2 branches covered.">        if (params.getCarryingCapacity() &lt; 1) {</span>
+<span class="fc" id="L217">            throw new IllegalArgumentException(&quot;Carrying Capacity cannot be less than 1&quot;);</span>
+        }
+
+<span class="fc" id="L220">        validateDates(params);</span>
+
+<span class="fc" id="L222">        updated.setHidden(params.isHidden());</span>
+<span class="fc" id="L223">        updated.setCourseId(params.getCourseId());</span>
+<span class="fc" id="L224">        gameRepository.save(updated);</span>
+
+<span class="fc" id="L226">        return ResponseEntity.status(status).build();</span>
+    }
+
+    @Operation(summary = &quot;Get a specific game&quot;)
+    @PreAuthorize(&quot;hasRole('ROLE_USER')&quot;)
+    @GetMapping(&quot;&quot;)
+    public Game getGameById(
+            @Parameter(name=&quot;id&quot;) @RequestParam Long id) throws JsonProcessingException {
+
+<span class="fc" id="L235">        Game game = gameRepository.findById(id)</span>
+<span class="fc" id="L236">                .orElseThrow(() -&gt; new EntityNotFoundException(&quot;Game&quot;, id));</span>
+
+<span class="fc" id="L238">        return game;</span>
+    }
+
+    @Operation(summary = &quot;Create a new game&quot;)
+    @PreAuthorize(&quot;hasRole('ROLE_ADMIN')&quot;)
+    @PostMapping(value = &quot;/new&quot;, produces = &quot;application/json&quot;)
+    public ResponseEntity&lt;String&gt; createGame(
+            @Parameter(name=&quot;request body&quot;) @RequestBody CreateGameParams params
+    ) throws JsonProcessingException {
+
+<span class="fc" id="L248">        var builder = Game.builder()</span>
+<span class="fc" id="L249">                .name(params.getName())</span>
+<span class="fc" id="L250">                .cowPrice(params.getCowPrice())</span>
+<span class="fc" id="L251">                .purchaseFee(params.getPurchaseFee())</span>
+<span class="fc" id="L252">                .sellingFee(params.getSellingFee())</span>
+<span class="fc" id="L253">                .milkPrice(params.getMilkPrice())</span>
+<span class="fc" id="L254">                .startingBalance(params.getStartingBalance())</span>
+<span class="fc" id="L255">                .startingDate(params.getStartingDate())</span>
+<span class="fc" id="L256">                .lastDate(params.getLastDate())</span>
+<span class="fc" id="L257">                .degradationRate(params.getDegradationRate())</span>
+<span class="fc" id="L258">                .showLeaderboard(params.getShowLeaderboard())</span>
+<span class="fc" id="L259">                .showChat(params.getShowChat())</span>
+<span class="fc" id="L260">                .capacityPerUser(params.getCapacityPerUser())</span>
+<span class="fc" id="L261">                .carryingCapacity(params.getCarryingCapacity())</span>
+<span class="fc" id="L262">                .hidden(params.isHidden())</span>
+<span class="fc" id="L263">                .courseId(params.getCourseId());</span>
+
+        // ok to set null values for these, so old backend still works
+<span class="fc bfc" id="L266" title="All 2 branches covered.">        if (params.getAboveCapacityHealthUpdateStrategy() != null) {</span>
+<span class="fc" id="L267">            builder.aboveCapacityHealthUpdateStrategy(CowHealthUpdateStrategies.valueOf(params.getAboveCapacityHealthUpdateStrategy()));</span>
+        }
+<span class="fc bfc" id="L269" title="All 2 branches covered.">        if (params.getBelowCapacityHealthUpdateStrategy() != null) {</span>
+<span class="fc" id="L270">            builder.belowCapacityHealthUpdateStrategy(CowHealthUpdateStrategies.valueOf(params.getBelowCapacityHealthUpdateStrategy()));</span>
+        }
+
+<span class="fc" id="L273">        Game game = builder.build();</span>
+
+        // Reference: frontend/src/main/components/Game/GameForm.js
+<span class="fc bfc" id="L276" title="All 2 branches covered.">        if (params.getName().equals(&quot;&quot;)) {</span>
+<span class="fc" id="L277">            throw new IllegalArgumentException(&quot;Name cannot be empty&quot;);</span>
+        }
+
+<span class="fc bfc" id="L280" title="All 2 branches covered.">        if (params.getCowPrice() &lt; 0.01) {</span>
+<span class="fc" id="L281">            throw new IllegalArgumentException(&quot;Cow Price cannot be less than 0.01&quot;);</span>
+        }
+
+<span class="pc bpc" id="L284" title="2 of 4 branches missed.">        if (!Double.isFinite(params.getPurchaseFee()) || params.getPurchaseFee() &lt; 0) {</span>
+<span class="nc" id="L285">            throw new IllegalArgumentException(&quot;Purchase Fee must be a non-negative finite number&quot;);</span>
+        }
+
+<span class="pc bpc" id="L288" title="2 of 4 branches missed.">        if (!Double.isFinite(params.getSellingFee()) || params.getSellingFee() &lt; 0) {</span>
+<span class="nc" id="L289">            throw new IllegalArgumentException(&quot;Selling Fee must be a non-negative finite number&quot;);</span>
+        }
+
+<span class="fc bfc" id="L292" title="All 2 branches covered.">        if (params.getMilkPrice() &lt; 0.01) {</span>
+<span class="fc" id="L293">            throw new IllegalArgumentException(&quot;Milk Price cannot be less than 0.01&quot;);</span>
+        }
+
+<span class="fc bfc" id="L296" title="All 2 branches covered.">        if (params.getStartingBalance() &lt; 0) {</span>
+<span class="fc" id="L297">            throw new IllegalArgumentException(&quot;Starting Balance cannot be negative&quot;);</span>
+        }
+
+        // throw exception for degradation rate
+<span class="fc bfc" id="L301" title="All 2 branches covered.">        if (params.getDegradationRate() &lt; 0) {</span>
+<span class="fc" id="L302">            throw new IllegalArgumentException(&quot;Degradation Rate cannot be negative&quot;);</span>
+        }
+
+<span class="fc bfc" id="L305" title="All 2 branches covered.">        if (params.getCarryingCapacity() &lt; 1) {</span>
+<span class="fc" id="L306">            throw new IllegalArgumentException(&quot;Carrying Capacity cannot be less than 1&quot;);</span>
+        }
+
+<span class="fc" id="L309">        validateDates(params);</span>
+
+<span class="fc" id="L311">        Game saved = gameRepository.save(game);</span>
+<span class="fc" id="L312">        String body = mapper.writeValueAsString(saved);</span>
+
+<span class="fc" id="L314">        return ResponseEntity.ok().body(body);</span>
+    }
+
+    /**
+     * Enforce that both dates are present and that the last date is strictly
+     * after the starting date.  (See issue #250; the frontend form enforces
+     * the same rules, but the backend must not rely on that.)
+     *
+     * @param params the params to validate
+     */
+    public static void validateDates(CreateGameParams params) {
+<span class="fc bfc" id="L325" title="All 2 branches covered.">        if (params.getStartingDate() == null) {</span>
+<span class="fc" id="L326">            throw new IllegalArgumentException(&quot;Starting Date is required&quot;);</span>
+        }
+<span class="fc bfc" id="L328" title="All 2 branches covered.">        if (params.getLastDate() == null) {</span>
+<span class="fc" id="L329">            throw new IllegalArgumentException(&quot;Last Date is required&quot;);</span>
+        }
+<span class="fc bfc" id="L331" title="All 2 branches covered.">        if (!params.getLastDate().isAfter(params.getStartingDate())) {</span>
+<span class="fc" id="L332">            throw new IllegalArgumentException(&quot;Last Date must be after Starting Date&quot;);</span>
+        }
+<span class="fc" id="L334">    }</span>
+
+
+    @Operation(summary = &quot;List all cow health update strategies&quot;)
+    @PreAuthorize(&quot;hasRole('ROLE_USER')&quot;)
+    @GetMapping(&quot;/all-health-update-strategies&quot;)
+    public ResponseEntity&lt;String&gt; listCowHealthUpdateStrategies() throws JsonProcessingException {
+<span class="fc" id="L341">        var result = HealthUpdateStrategyList.create();</span>
+<span class="fc" id="L342">        String body = mapper.writeValueAsString(result);</span>
+<span class="fc" id="L343">        return ResponseEntity.ok().body(body);</span>
+    }
+
+    @Operation(summary = &quot;Get the ids of the courses the current user belongs to as a student or staff member&quot;)
+    @PreAuthorize(&quot;hasRole('ROLE_USER')&quot;)
+    @GetMapping(&quot;/mycourses&quot;)
+    public ResponseEntity&lt;List&lt;Long&gt;&gt; getMyCourseIds() {
+<span class="fc" id="L350">        User u = getCurrentUser().getUser();</span>
+<span class="fc" id="L351">        List&lt;Long&gt; courseIds = courseAccessService.getCourseIdsForUser(u);</span>
+<span class="fc" id="L352">        return ResponseEntity.ok().body(courseIds);</span>
+    }
+
+    @Operation(summary = &quot;Join a game&quot;)
+    @PreAuthorize(&quot;hasRole('ROLE_USER')&quot;)
+    @PostMapping(value = &quot;/join&quot;, produces = &quot;application/json&quot;)
+    public ResponseEntity&lt;String&gt; joinCommon(
+            @Parameter(name=&quot;gameId&quot;) @RequestParam Long gameId) throws Exception {
+
+<span class="fc" id="L361">        User u = getCurrentUser().getUser();</span>
+<span class="fc" id="L362">        Long userId = u.getId();</span>
+<span class="fc" id="L363">        String username = u.getFullName();</span>
+
+<span class="fc" id="L365">        Game joinedGame = gameRepository.findById(gameId)</span>
+<span class="fc" id="L366">                .orElseThrow(() -&gt; new EntityNotFoundException(&quot;Game&quot;, gameId));</span>
+        
+<span class="fc bfc" id="L368" title="All 2 branches covered.">        if (joinedGame.isHidden()) {</span>
+<span class="fc" id="L369">            throw new CommonsHIddenException(gameId);</span>
+        }
+
+<span class="fc bfc" id="L372" title="All 4 branches covered.">        if (joinedGame.getCourseId() != null &amp;&amp; !courseAccessService.isEligibleForGame(u, joinedGame)) {</span>
+<span class="fc" id="L373">            throw new CourseAccessDeniedException(gameId);</span>
+        }
+
+<span class="fc" id="L376">        Optional&lt;Farmer&gt; farmerLookup = farmerRepository.findByGameIdAndUserId(gameId, userId);</span>
+
+<span class="fc bfc" id="L378" title="All 2 branches covered.">        if (farmerLookup.isPresent()) {</span>
+            // user is already a member of this game
+<span class="fc" id="L380">            String body = mapper.writeValueAsString(joinedGame);</span>
+<span class="fc" id="L381">            return ResponseEntity.ok().body(body);</span>
+        }
+
+<span class="fc" id="L384">        Farmer uc = Farmer.builder()</span>
+<span class="fc" id="L385">                .user(u)</span>
+<span class="fc" id="L386">                .game(joinedGame)</span>
+<span class="fc" id="L387">                .username(username)</span>
+<span class="fc" id="L388">                .totalWealth(joinedGame.getStartingBalance())</span>
+<span class="fc" id="L389">                .numOfCows(0)</span>
+<span class="fc" id="L390">                .cowHealth(100)</span>
+<span class="fc" id="L391">                .cowsBought(0)</span>
+<span class="fc" id="L392">                .cowsSold(0)</span>
+<span class="fc" id="L393">                .cowDeaths(0)</span>
+<span class="fc" id="L394">                .build();</span>
+
+<span class="fc" id="L396">        farmerRepository.save(uc);</span>
+
+<span class="fc" id="L398">        String body = mapper.writeValueAsString(joinedGame);</span>
+<span class="fc" id="L399">        return ResponseEntity.ok().body(body);</span>
+    }
+
+    @Operation(summary = &quot;Delete a Game&quot;)
+    @PreAuthorize(&quot;hasRole('ROLE_ADMIN')&quot;)
+    @DeleteMapping(&quot;&quot;)
+    public Object deleteGame(
+            @Parameter(name=&quot;id&quot;) @RequestParam Long id) {
+        
+<span class="fc" id="L408">        Iterable&lt;Farmer&gt; farmer = farmerRepository.findByGameId(id);</span>
+
+<span class="fc bfc" id="L410" title="All 2 branches covered.">        for (Farmer game : farmer) {</span>
+<span class="fc" id="L411">            farmerRepository.delete(game);</span>
+<span class="fc" id="L412">        }</span>
+
+<span class="fc" id="L414">        gameRepository.findById(id)</span>
+<span class="fc" id="L415">                .orElseThrow(() -&gt; new EntityNotFoundException(&quot;Game&quot;, id));</span>
+
+<span class="fc" id="L417">        gameRepository.deleteById(id);</span>
+
+<span class="fc" id="L419">        String responseString = String.format(&quot;game with id %d deleted&quot;, id);</span>
+<span class="fc" id="L420">        return genericMessage(responseString);</span>
+
+    }
+
+    @Operation(summary=&quot;Delete a user from a game&quot;)
+    @PreAuthorize(&quot;hasRole('ROLE_ADMIN')&quot;)
+    @DeleteMapping(&quot;/{gameId}/users/{userId}&quot;)
+    public Object deleteUserFromCommon(@PathVariable(&quot;gameId&quot;) Long gameId,
+                                       @PathVariable(&quot;userId&quot;) Long userId) throws Exception {
+
+<span class="fc" id="L430">        Farmer farmer = farmerRepository.findByGameIdAndUserId(gameId, userId)</span>
+<span class="fc" id="L431">                .orElseThrow(() -&gt; new EntityNotFoundException(</span>
+                        Farmer.class, &quot;gameId&quot;, gameId, &quot;userId&quot;, userId)
+                );
+
+<span class="fc" id="L435">        farmerRepository.delete(farmer);</span>
+
+<span class="fc" id="L437">        String responseString = String.format(&quot;user with id %d deleted from game with id %d, %d users remain&quot;, userId, gameId, gameRepository.getNumUsers(gameId).orElse(0));</span>
+
+<span class="fc" id="L439">        return genericMessage(responseString);</span>
+    }
+
+    @Operation(summary = &quot;Update the dashboard visibility settings for a game (admin only)&quot;)
+    @PreAuthorize(&quot;hasRole('ROLE_ADMIN')&quot;)
+    @PutMapping(&quot;/dashboardSettings&quot;)
+    public ResponseEntity&lt;Game&gt; updateDashboardSettings(
+            @Parameter(name=&quot;id&quot;) @RequestParam long id,
+            @Parameter(name=&quot;request body&quot;) @RequestBody DashboardSettingsParams params
+    ) {
+<span class="fc" id="L449">        Game game = gameRepository.findById(id)</span>
+<span class="fc" id="L450">                .orElseThrow(() -&gt; new EntityNotFoundException(&quot;Game&quot;, id));</span>
+
+<span class="fc" id="L452">        game.setShowLeaderboard(params.isShowLeaderboard());</span>
+<span class="fc" id="L453">        game.setShowOverviewSection(params.isShowOverviewSection());</span>
+<span class="fc" id="L454">        game.setShowCowsPerFarmerSection(params.isShowCowsPerFarmerSection());</span>
+<span class="fc" id="L455">        game.setShowCapacitySection(params.isShowCapacitySection());</span>
+<span class="fc" id="L456">        game.setShowHistogramSection(params.isShowHistogramSection());</span>
+<span class="fc" id="L457">        game.setShowTrendsSection(params.isShowTrendsSection());</span>
+<span class="fc" id="L458">        game.setShowHealthSection(params.isShowHealthSection());</span>
+<span class="fc" id="L459">        game.setShowTotalCowsSection(params.isShowTotalCowsSection());</span>
+<span class="fc" id="L460">        game.setShowCapacityOverTimeSection(params.isShowCapacityOverTimeSection());</span>
+<span class="fc" id="L461">        game.setShowFarmerLeaderboardSection(params.isShowFarmerLeaderboardSection());</span>
+
+<span class="fc" id="L463">        Game saved = gameRepository.save(game);</span>
+
+<span class="fc" id="L465">        return ResponseEntity.ok().body(saved);</span>
+    }
+
+    @Operation(summary = &quot;Get the number of cows for each farmer in a game&quot;)
+    @PreAuthorize(&quot;hasRole('ROLE_USER')&quot;)
+    @GetMapping(&quot;/numcows&quot;)
+    public ResponseEntity&lt;List&lt;Integer&gt;&gt; getNumCowsForGameId(
+            @Parameter(name=&quot;gameId&quot;) @RequestParam Long gameId) {
+<span class="fc" id="L473">        Iterable&lt;Farmer&gt; farmerList = farmerRepository.findByGameId(gameId);</span>
+<span class="fc" id="L474">        List&lt;Integer&gt; numCowsList = StreamSupport.stream(farmerList.spliterator(), false)</span>
+<span class="fc" id="L475">                .map(Farmer::getNumOfCows)</span>
+<span class="fc" id="L476">                .collect(Collectors.toList());</span>
+<span class="fc" id="L477">        return ResponseEntity.ok().body(numCowsList);</span>
+    }
+
+    @Operation(summary = &quot;Get timeseries stats for a game&quot;)
+    @PreAuthorize(&quot;hasRole('ROLE_USER')&quot;)
+    @GetMapping(&quot;/timeseries&quot;)
+    public ResponseEntity&lt;List&lt;Map&lt;String, Object&gt;&gt;&gt; getGameTimeSeries(
+            @Parameter(name=&quot;commonId&quot;) @RequestParam Long commonId) {
+<span class="fc" id="L485">        Iterable&lt;GameStats&gt; gameStats = gameStatsRepository.findAllByGameId(commonId);</span>
+<span class="fc" id="L486">        List&lt;GameStats&gt; sortedStats = StreamSupport.stream(gameStats.spliterator(), false)</span>
+<span class="fc" id="L487">                .sorted(Comparator.comparing(GameStats::getCreateDate))</span>
+<span class="fc" id="L488">                .collect(Collectors.toList());</span>
+
+<span class="fc" id="L490">        List&lt;Map&lt;String, Object&gt;&gt; healthValues = sortedStats.stream()</span>
+<span class="fc" id="L491">                .map(stat -&gt; Map.&lt;String, Object&gt;of(</span>
+<span class="fc" id="L492">                        &quot;date&quot;, stat.getCreateDate().toString(),</span>
+<span class="fc" id="L493">                        &quot;value&quot;, stat.getAvgHealth()))</span>
+<span class="fc" id="L494">                .collect(Collectors.toList());</span>
+
+<span class="fc" id="L496">        List&lt;Map&lt;String, Object&gt;&gt; totalCowsValues = sortedStats.stream()</span>
+<span class="fc" id="L497">                .map(stat -&gt; Map.&lt;String, Object&gt;of(</span>
+<span class="fc" id="L498">                        &quot;date&quot;, stat.getCreateDate().toString(),</span>
+<span class="fc" id="L499">                        &quot;value&quot;, stat.getNumCows()))</span>
+<span class="fc" id="L500">                .collect(Collectors.toList());</span>
+
+<span class="fc" id="L502">        List&lt;Map&lt;String, Object&gt;&gt; effectiveCapacityValues = sortedStats.stream()</span>
+<span class="fc" id="L503">                .map(stat -&gt; Map.&lt;String, Object&gt;of(</span>
+<span class="fc" id="L504">                        &quot;date&quot;, stat.getCreateDate().toString(),</span>
+<span class="fc" id="L505">                        &quot;value&quot;, stat.getEffectiveCapacity()))</span>
+<span class="fc" id="L506">                .collect(Collectors.toList());</span>
+
+<span class="fc" id="L508">        List&lt;Map&lt;String, Object&gt;&gt; timeSeries = List.of(</span>
+<span class="fc" id="L509">                Map.of(</span>
+                        &quot;name&quot;, &quot;Health&quot;,
+                        &quot;color&quot;, &quot;#0088FE&quot;,
+<span class="fc" id="L512">                        &quot;percentage&quot;, true,</span>
+                        &quot;values&quot;, healthValues),
+<span class="fc" id="L514">                Map.of(</span>
+                        &quot;name&quot;, &quot;Total Cows&quot;,
+                        &quot;color&quot;, &quot;#FF8042&quot;,
+                        &quot;values&quot;, totalCowsValues),
+<span class="fc" id="L518">                Map.of(</span>
+                        &quot;name&quot;, &quot;Effective Capacity&quot;,
+                        &quot;color&quot;, &quot;#00C49F&quot;,
+                        &quot;values&quot;, effectiveCapacityValues));
+
+<span class="fc" id="L523">        return ResponseEntity.ok().body(timeSeries);</span>
+    }
+
+    
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.15.202606040825</span></div></body></html>

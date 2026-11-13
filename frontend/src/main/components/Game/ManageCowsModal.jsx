@@ -26,6 +26,8 @@ const ManageCowsModal = ({
       window.alert(
         `You cannot ${message} a negative number of cows! Please enter a non-negative number.`,
       );
+    } else if (!/^\d+$/.test(number)) {
+      toast.warn(`Warning: You must ${message} a whole number of cows!`);
     } else {
       if (message.includes("buy")) {
         onBuy(farmer, number);
@@ -52,8 +54,8 @@ const ManageCowsModal = ({
       show={isOpen}
       onHide={handleClose}
     >
-      <Modal.Body>
-        <Form onSubmit={handleSubmit}>
+      <Form noValidate onSubmit={handleSubmit}>
+        <Modal.Body>
           <Form.Group
             data-testid={"buy-sell-cow-modal-closeGroup"}
             style={{ display: "flex", justifyContent: "right" }}
@@ -88,27 +90,27 @@ const ManageCowsModal = ({
               min="1"
             />
           </Form.Group>
-        </Form>
-      </Modal.Body>
-      <Modal.Footer
-        data-testid={"buy-sell-cow-modal-footer"}
-        style={{ borderTop: "0px" }}
-      >
-        <Button
-          data-testid={"buy-sell-cow-modal-cancel"}
-          variant="secondary"
-          onClick={handleClose}
+        </Modal.Body>
+        <Modal.Footer
+          data-testid={"buy-sell-cow-modal-footer"}
+          style={{ borderTop: "0px" }}
         >
-          Cancel
-        </Button>
-        <Button
-          data-testid={"buy-sell-cow-modal-submit"}
-          variant="primary"
-          onClick={handleSubmit}
-        >
-          {message[0].toUpperCase() + message.slice(1)}
-        </Button>
-      </Modal.Footer>
+          <Button
+            data-testid={"buy-sell-cow-modal-cancel"}
+            variant="secondary"
+            onClick={handleClose}
+          >
+            Cancel
+          </Button>
+          <Button
+            data-testid={"buy-sell-cow-modal-submit"}
+            variant="primary"
+            type="submit"
+          >
+            {message[0].toUpperCase() + message.slice(1)}
+          </Button>
+        </Modal.Footer>
+      </Form>
     </Modal>
   );
 };

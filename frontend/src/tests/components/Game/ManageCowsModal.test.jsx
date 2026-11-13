@@ -1,5 +1,6 @@
 import React from "react";
 import { render, fireEvent, screen, waitFor } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import ManageCowsModal from "main/components/Game/ManageCowsModal";
 import farmerFixtures from "fixtures/farmerFixtures";
 import { vi } from "vitest";
@@ -183,6 +184,76 @@ describe("ManageCowsModal", () => {
     );
   });
 
+  describe.each(["buy", "sell"])("%s quantity validation", (message) => {
+    test.each([
+      ["1.2", "click"],
+      ["1.2", "Enter"],
+      ["1.0", "click"],
+      ["1e1", "click"],
+      ["", "click"],
+    ])(
+      "warns without submitting quantity '%s' using %s",
+      async (number, submission) => {
+        const user = userEvent.setup();
+        render(
+          <ManageCowsModal
+            isOpen={true}
+            onClose={mockOnClose}
+            message={message}
+            farmer={farmerFixtures.oneFarmer[0]}
+            number={number}
+            onBuy={mockOnBuy}
+            onSell={mockOnSell}
+            setNumber={mockSetNumber}
+          />,
+        );
+
+        if (submission === "click") {
+          await user.click(screen.getByTestId("buy-sell-cow-modal-submit"));
+        } else {
+          await user.click(screen.getByTestId("buy-sell-cow-modal-input"));
+          await user.keyboard("{Enter}");
+        }
+
+        expect(mockToast).toHaveBeenCalledWith(
+          `Warning: You must ${message} a whole number of cows!`,
+        );
+        expect(mockOnBuy).not.toHaveBeenCalled();
+        expect(mockOnSell).not.toHaveBeenCalled();
+        expect(mockOnClose).not.toHaveBeenCalled();
+        expect(mockSetNumber).not.toHaveBeenCalled();
+      },
+    );
+
+    test("submits a whole-number quantity using Enter", async () => {
+      const user = userEvent.setup();
+      render(
+        <ManageCowsModal
+          isOpen={true}
+          onClose={mockOnClose}
+          message={message}
+          farmer={farmerFixtures.oneFarmer[0]}
+          number="5"
+          onBuy={mockOnBuy}
+          onSell={mockOnSell}
+          setNumber={mockSetNumber}
+        />,
+      );
+
+      await user.click(screen.getByTestId("buy-sell-cow-modal-input"));
+      await user.keyboard("{Enter}");
+
+      const onSubmit = message === "buy" ? mockOnBuy : mockOnSell;
+      expect(onSubmit).toHaveBeenCalledExactlyOnceWith(
+        farmerFixtures.oneFarmer[0],
+        "5",
+      );
+      expect(mockToast).not.toHaveBeenCalled();
+      expect(mockSetNumber).toHaveBeenCalledWith(1);
+      expect(mockOnClose).toHaveBeenCalledOnce();
+    });
+  });
+
   test("windows toolkit warning for buying negative cows", async () => {
     const number2 = -3;
 
@@ -332,6 +403,9 @@ describe("ManageCowsModal", () => {
     expect(screen.getByTestId("buy-sell-cow-modal-footer")).toHaveStyle(
       "border-top-width: 0px",
     );
+    expect(
+      screen.getByTestId("buy-sell-cow-modal-footer").style.borderTop,
+    ).toBe("0px");
     expect(screen.getByTestId("buy-sell-cow-modal-input")).toHaveStyle(
       "width: 20%",
     );

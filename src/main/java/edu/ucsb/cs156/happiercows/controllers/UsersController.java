@@ -19,6 +19,8 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 
+import java.time.Instant;
+
 @Tag(name="User information (admin only)")
 @RequestMapping("/api/admin/users")
 @RestController
@@ -60,5 +62,23 @@ public class UsersController extends ApiController {
         user.setSuspended(false);
         userRepository.save(user);
         return genericMessage("User with id %d restored".formatted(userId));
+    }
+
+    @Operation(summary = "Put a user on chat cooldown")
+    @PreAuthorize("hasRole('ROLE_ADMIN')")
+    @PostMapping("/chatcooldown")
+    public ResponseEntity<Object> setChatCooldown(
+            @Parameter(name = "userId") @RequestParam long userId,
+            @Parameter(name = "durationSeconds") @RequestParam long durationSeconds) {
+        if (durationSeconds <= 0) {
+            return ResponseEntity.badRequest()
+                    .body(genericMessage("durationSeconds must be positive"));
+        }
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new EntityNotFoundException(User.class, userId));
+        user.setChatCooldownUntil(Instant.now().plusSeconds(durationSeconds));
+        userRepository.save(user);
+        return ResponseEntity.ok(genericMessage(
+                "User with id %d on chat cooldown for %d seconds".formatted(userId, durationSeconds)));
     }
 }

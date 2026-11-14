@@ -1,0 +1,40 @@
+{
+    "databaseChangeLog": [
+        {
+            "changeSet": {
+                "id": "016-Add-Chat-Cooldown-Until-To-Users",
+                "author": "cheng-roland",
+                "preConditions": [
+                    {
+                        "onFail": "MARK_RAN"
+                    },
+                    {
+                        "not": [
+                            {
+                                "columnExists": {
+                                    "tableName": "USERS",
+                                    "columnName": "CHAT_COOLDOWN_UNTIL"
+                                }
+                            }
+                        ]
+                    }
+                ],
+                "changes": [
+                    {
+                        "addColumn": {
+                            "tableName": "USERS",
+                            "columns": [
+                                {
+                                    "column": {
+                                        "name": "CHAT_COOLDOWN_UNTIL",
+                                        "type": "TIMESTAMP WITH TIME ZONE"
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                ]
+            }
+        }
+    ]
+}

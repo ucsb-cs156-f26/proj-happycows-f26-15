@@ -31,6 +31,7 @@ public class User {
     private String hostedDomain;
     private boolean admin;
     private boolean suspended;
+    private Instant chatCooldownUntil;
 
   @Builder.Default
   private Instant lastOnline = Instant.now();

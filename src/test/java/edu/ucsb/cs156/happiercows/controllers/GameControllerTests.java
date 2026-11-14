@@ -2228,4 +2228,74 @@ public class GameControllerTests extends ControllerTestCase {
         assertEquals(2.5, captor.getValue().getSellingFee());
     }
 
+        @WithMockUser(roles = {"ADMIN"})
+    @Test
+    public void createGameTest_rejectsInvalidFees() throws Exception {
+        double[] invalidFees = {-1.0, Double.NaN};
+
+        for (double invalidFee : invalidFees) {
+            for (boolean invalidPurchaseFee : new boolean[]{true, false}) {
+                CreateGameParams params = CreateGameParams.builder()
+                        .name("Invalid Fee Game")
+                        .cowPrice(100.0)
+                        .purchaseFee(invalidPurchaseFee ? invalidFee : 1.0)
+                        .sellingFee(invalidPurchaseFee ? 1.0 : invalidFee)
+                        .milkPrice(5.0)
+                        .startingBalance(1000.0)
+                        .startingDate(LocalDateTime.parse("2026-11-12T00:00:00"))
+                        .lastDate(LocalDateTime.parse("2027-03-12T00:00:00"))
+                        .degradationRate(0.01)
+                        .capacityPerUser(10)
+                        .carryingCapacity(100)
+                        .build();
+
+                mockMvc.perform(
+                        post("/api/game/new")
+                                .with(csrf())
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(objectMapper.writeValueAsString(params)))
+                        .andExpect(status().isBadRequest());
+            }
+        }
+    }
+
+    @WithMockUser(roles = {"ADMIN"})
+    @Test
+    public void updateGameTest_rejectsInvalidFees() throws Exception {
+        Game existingGame = Game.builder()
+                .id(1L)
+                .name("Existing Game")
+                .cowPrice(100.0)
+                .build();
+
+        when(gameRepository.findById(1L))
+                .thenReturn(Optional.of(existingGame));
+
+        double[] invalidFees = {-1.0, Double.NaN};
+
+        for (double invalidFee : invalidFees) {
+            for (boolean invalidPurchaseFee : new boolean[]{true, false}) {
+                CreateGameParams params = CreateGameParams.builder()
+                        .name("Invalid Updated Fee Game")
+                        .cowPrice(100.0)
+                        .purchaseFee(invalidPurchaseFee ? invalidFee : 1.0)
+                        .sellingFee(invalidPurchaseFee ? 1.0 : invalidFee)
+                        .milkPrice(5.0)
+                        .startingBalance(1000.0)
+                        .startingDate(LocalDateTime.parse("2026-11-12T00:00:00"))
+                        .lastDate(LocalDateTime.parse("2027-03-12T00:00:00"))
+                        .degradationRate(0.01)
+                        .capacityPerUser(10)
+                        .carryingCapacity(100)
+                        .build();
+
+                mockMvc.perform(
+                        put("/api/game/update?id=1")
+                                .with(csrf())
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(objectMapper.writeValueAsString(params)))
+                        .andExpect(status().isBadRequest());
+            }
+        }
+    }
 }

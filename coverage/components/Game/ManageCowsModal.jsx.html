@@ -25,14 +25,14 @@
             <div class='fl pad1y space-right2'>
                 <span class="strong">100% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>20/20</span>
+                <span class='fraction'>22/22</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
                 <span class="strong">100% </span>
                 <span class="quiet">Branches</span>
-                <span class='fraction'>8/8</span>
+                <span class='fraction'>10/10</span>
             </div>
         
             
@@ -46,7 +46,7 @@
             <div class='fl pad1y space-right2'>
                 <span class="strong">100% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>20/20</span>
+                <span class='fraction'>22/22</span>
             </div>
         
             
@@ -179,7 +179,9 @@
 <a name='L114'></a><a href='#L114'>114</a>
 <a name='L115'></a><a href='#L115'>115</a>
 <a name='L116'></a><a href='#L116'>116</a>
-<a name='L117'></a><a href='#L117'>117</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
+<a name='L117'></a><a href='#L117'>117</a>
+<a name='L118'></a><a href='#L118'>118</a>
+<a name='L119'></a><a href='#L119'>119</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -194,40 +196,42 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">85x</span>
+<span class="cline-any cline-yes">98x</span>
 <span class="cline-any cline-yes">5x</span>
 <span class="cline-any cline-yes">2x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">5x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">85x</span>
+<span class="cline-any cline-yes">98x</span>
+<span class="cline-any cline-yes">19x</span>
+<span class="cline-any cline-yes">19x</span>
+<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">17x</span>
+<span class="cline-any cline-yes">10x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">7x</span>
-<span class="cline-any cline-yes">7x</span>
-<span class="cline-any cline-yes">2x</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">5x</span>
-<span class="cline-any cline-yes">2x</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">3x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">5x</span>
-<span class="cline-any cline-yes">5x</span>
+<span class="cline-any cline-yes">4x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">7x</span>
+<span class="cline-any cline-yes">7x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">85x</span>
+<span class="cline-any cline-yes">98x</span>
 <span class="cline-any cline-yes">4x</span>
 <span class="cline-any cline-yes">4x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">85x</span>
+<span class="cline-any cline-yes">98x</span>
 <span class="cline-any cline-yes">64x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">21x</span>
+<span class="cline-any cline-yes">34x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -323,6 +327,8 @@ const ManageCowsModal = ({
       window.alert(
         `You cannot ${message} a negative number of cows! Please enter a non-negative number.`,
       );
+    } else if (!/^\d+$/.test(number)) {
+      toast.warn(`Warning: You must ${message} a whole number of cows!`);
     } else {
       if (message.includes("buy")) {
         onBuy(farmer, number);
@@ -349,8 +355,8 @@ const ManageCowsModal = ({
       show={isOpen}
       onHide={handleClose}
     &gt;
-      &lt;Modal.Body&gt;
-        &lt;Form onSubmit={handleSubmit}&gt;
+      &lt;Form noValidate onSubmit={handleSubmit}&gt;
+        &lt;Modal.Body&gt;
           &lt;Form.Group
             data-testid={"buy-sell-cow-modal-closeGroup"}
             style={{ display: "flex", justifyContent: "right" }}
@@ -385,27 +391,27 @@ const ManageCowsModal = ({
               min="1"
             /&gt;
           &lt;/Form.Group&gt;
-        &lt;/Form&gt;
-      &lt;/Modal.Body&gt;
-      &lt;Modal.Footer
-        data-testid={"buy-sell-cow-modal-footer"}
-        style={{ borderTop: "0px" }}
-      &gt;
-        &lt;Button
-          data-testid={"buy-sell-cow-modal-cancel"}
-          variant="secondary"
-          onClick={handleClose}
+        &lt;/Modal.Body&gt;
+        &lt;Modal.Footer
+          data-testid={"buy-sell-cow-modal-footer"}
+          style={{ borderTop: "0px" }}
         &gt;
-          Cancel
-        &lt;/Button&gt;
-        &lt;Button
-          data-testid={"buy-sell-cow-modal-submit"}
-          variant="primary"
-          onClick={handleSubmit}
-        &gt;
-          {message[0].toUpperCase() + message.slice(1)}
-        &lt;/Button&gt;
-      &lt;/Modal.Footer&gt;
+          &lt;Button
+            data-testid={"buy-sell-cow-modal-cancel"}
+            variant="secondary"
+            onClick={handleClose}
+          &gt;
+            Cancel
+          &lt;/Button&gt;
+          &lt;Button
+            data-testid={"buy-sell-cow-modal-submit"}
+            variant="primary"
+            type="submit"
+          &gt;
+            {message[0].toUpperCase() + message.slice(1)}
+          &lt;/Button&gt;
+        &lt;/Modal.Footer&gt;
+      &lt;/Form&gt;
     &lt;/Modal&gt;
   );
 };
@@ -418,7 +424,7 @@ export default ManageCowsModal;
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2026-11-12T18:58:56.704Z
+                at 2026-11-15T18:48:09.811Z
             </div>
         <script src="../../prettify.js"></script>
         <script>

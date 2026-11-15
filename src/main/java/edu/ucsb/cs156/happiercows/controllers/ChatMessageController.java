@@ -22,6 +22,9 @@ import edu.ucsb.cs156.happiercows.entities.User;
 import edu.ucsb.cs156.happiercows.entities.Farmer;
 import edu.ucsb.cs156.happiercows.repositories.FarmerRepository;
 
+import edu.ucsb.cs156.happiercows.models.CensorResult;
+import edu.ucsb.cs156.happiercows.services.ChatFilterService;
+
 import org.springframework.security.core.Authentication;
 
 
@@ -32,7 +35,7 @@ import java.util.Optional;
 @RestController
 @Slf4j
 public class ChatMessageController extends ApiController{
-
+    
     @Autowired
     private ChatMessageRepository chatMessageRepository;
 
@@ -41,6 +44,9 @@ public class ChatMessageController extends ApiController{
 
     @Autowired
     ObjectMapper mapper;
+
+    @Autowired
+    private ChatFilterService chatFilterService;
 
     @Operation(summary = "Get all chat messages", description = "Get all chat messages associated with a specific game.")
     @PreAuthorize("hasAnyRole('ROLE_USER', 'ROLE_ADMIN')")
@@ -123,15 +129,19 @@ public class ChatMessageController extends ApiController{
             }
         }
 
+        // Replace any banned words with asterisks before saving
+        CensorResult censorResult = chatFilterService.censor(content);
+
         // Create the chat message
         ChatMessage chatMessage = ChatMessage.builder()
         .gameId(gameId)
         .userId(userId)
-        .message(content)
+        .message(censorResult.getText())
         .hidden(false)
         .dm(false)
         .toUserId(0)
         .build();
+
 
         // Save the message
         chatMessageRepository.save(chatMessage);

@@ -7,7 +7,7 @@ To deploy on dokku, see the instructions here:
 
 You will need the environment variables documented in the file `/docs/environment-variables.md` in this repo.
 
-You will also need the command:
+To include deployed commit information in Developer Info, use the recommended command:
 
 * <tt>dokku git:set <i>appname</i> keep-git-dir true</tt>
 
@@ -17,7 +17,8 @@ The Dockerfile builds with Maven 3.9.16 and Temurin JDK 25, then copies the pack
 `startup.sh` into a Temurin 25 JRE image. BuildKit caches Maven downloads and npm downloads;
 separate dependency layers run before application source is copied. `.dockerignore` excludes
 local credentials, generated output, and development files, but retains `.git` for build metadata.
-Keep Dokku's `keep-git-dir` setting above. The runtime starts `/app/happycows.jar` through
+Without `.git`, builds and startup still succeed; commit fields display `unknown`.
+The runtime starts `/app/happycows.jar` through
 `startup.sh`, which maps the database URL and uses `exec` to forward signals to Java.
 
 Node comes from the Maven production profile, with its version set in `pom.xml`. Docker installs

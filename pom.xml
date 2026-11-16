@@ -18,6 +18,8 @@
     <properties>
         <java.version>25</java.version>
         <app.frontend.nodeVersion>v24.21.0</app.frontend.nodeVersion>
+        <app.frontend.installDirectory>${project.build.directory}</app.frontend.installDirectory>
+        <cache.use>false</cache.use>
         <targetClasses>${targetClasses:edu.ucsb.cs156.*}</targetClasses>
     </properties>
     <dependencies>
@@ -423,7 +425,7 @@
                 </configuration>
                 <executions>
                 <execution>
-                    <id>install node and npm</id>
+                    <id>install-node-and-npm</id>
                     <goals>
                     <goal>install-node-and-npm</goal>
                     </goals>
@@ -432,7 +434,7 @@
                     </configuration>
                 </execution>
                 <execution>
-                    <id>npm install</id>
+                    <id>npm-install</id>
                     <goals>
                     <goal>npm</goal>
                     </goals>
@@ -442,7 +444,7 @@
                     </configuration>
                 </execution>
                 <execution>
-                    <id>npm run build</id>
+                    <id>npm-run-build</id>
                     <goals>
                     <goal>npm</goal>
                     </goals>
@@ -547,20 +549,21 @@
                         <version>1.12.1</version>
                         <configuration>
                             <workingDirectory>frontend</workingDirectory>
-                            <installDirectory>${project.build.directory}</installDirectory>
+                            <installDirectory>${app.frontend.installDirectory}</installDirectory>
                         </configuration>
                         <executions>
                             <execution>
-                                <id>install node and npm</id>
+                                <id>install-node-and-npm</id>
                                 <goals>
                                     <goal>install-node-and-npm</goal>
                                 </goals>
                                 <configuration>
                                     <nodeVersion>${app.frontend.nodeVersion}</nodeVersion>
+                                    <skip>${cache.use}</skip>
                                 </configuration>
                             </execution>
                             <execution>
-                                <id>npm install</id>
+                                <id>npm-install</id>
                                 <goals>
                                     <goal>npm</goal>
                                 </goals>
@@ -570,7 +573,7 @@
                                 </configuration>
                             </execution>
                             <execution>
-                                <id>npm run build</id>
+                                <id>npm-run-build</id>
                                 <goals>
                                     <goal>npm</goal>
                                 </goals>
@@ -595,12 +598,13 @@
                                     <exportAntProperties>true</exportAntProperties>
                                     <target>
                                         <condition property="frontend.dependency.skip" value="true" else="false">
-                                            <and>
+                                            <or>
+                                                <equals arg1="${cache.use}" arg2="true"/>
                                                 <uptodate>
                                                     <srcfiles dir="${project.basedir}/frontend" includes="package.json,package-lock.json"/>
                                                     <mapper type="merge" to="${project.build.directory}/frontend-deps.marker"/>
                                                 </uptodate>
-                                            </and>
+                                            </or>
                                         </condition>
                                         <condition property="frontend.build.skip" value="true" else="false">
                                             <and>

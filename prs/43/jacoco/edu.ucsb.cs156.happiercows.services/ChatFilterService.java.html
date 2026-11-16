@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>ChatFilterService.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">happycows</a> &gt; <a href="index.source.html" class="el_package">edu.ucsb.cs156.happiercows.services</a> &gt; <span class="el_source">ChatFilterService.java</span></div><h1>ChatFilterService.java</h1><pre class="source lang-java linenums">package edu.ucsb.cs156.happiercows.services;
+
+import edu.ucsb.cs156.happiercows.entities.BannedWord;
+import edu.ucsb.cs156.happiercows.models.CensorResult;
+import edu.ucsb.cs156.happiercows.repositories.BannedWordRepository;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import java.util.List;
+import java.util.regex.Pattern;
+import java.util.stream.Collectors;
+import java.util.stream.StreamSupport;
+
+/** Replaces banned words in chat messages with asterisks. */
+@Service
+<span class="fc" id="L16">public class ChatFilterService {</span>
+
+    // A match must not have a letter, digit, or underscore directly before or after it,
+    // so banning &quot;cow&quot; does not censor &quot;cowboy&quot;.
+    private static final String NOT_WORD_CHAR_BEFORE = &quot;(?&lt;![\\p{L}\\p{N}_])&quot;;
+    private static final String NOT_WORD_CHAR_AFTER = &quot;(?![\\p{L}\\p{N}_])&quot;;
+
+    @Autowired
+    private BannedWordRepository bannedWordRepository;
+
+    public CensorResult censor(String message) {
+<span class="fc" id="L27">        List&lt;String&gt; words = StreamSupport</span>
+<span class="fc" id="L28">                .stream(bannedWordRepository.findAll().spliterator(), false)</span>
+<span class="fc" id="L29">                .map(BannedWord::getWord)</span>
+<span class="fc" id="L30">                .collect(Collectors.toList());</span>
+
+<span class="fc bfc" id="L32" title="All 2 branches covered.">        if (words.isEmpty()) {</span>
+<span class="fc" id="L33">            return new CensorResult(message, false);</span>
+        }
+
+<span class="fc" id="L36">        String alternatives = words.stream()</span>
+<span class="fc" id="L37">                .map(Pattern::quote)</span>
+<span class="fc" id="L38">                .collect(Collectors.joining(&quot;|&quot;));</span>
+
+<span class="fc" id="L40">        Pattern pattern = Pattern.compile(</span>
+                NOT_WORD_CHAR_BEFORE + &quot;(?:&quot; + alternatives + &quot;)&quot; + NOT_WORD_CHAR_AFTER,
+                Pattern.CASE_INSENSITIVE | Pattern.UNICODE_CASE);
+
+<span class="fc bfc" id="L44" title="All 2 branches covered.">        if (!pattern.matcher(message).find()) {</span>
+<span class="fc" id="L45">            return new CensorResult(message, false);</span>
+        }
+
+<span class="fc" id="L48">        String censoredText = pattern.matcher(message)</span>
+<span class="fc" id="L49">                .replaceAll(match -&gt; &quot;*&quot;.repeat(match.group().length()));</span>
+<span class="fc" id="L50">        return new CensorResult(censoredText, true);</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.15.202606040825</span></div></body></html>

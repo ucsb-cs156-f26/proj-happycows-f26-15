@@ -949,6 +949,7 @@ public class GameControllerTests extends ControllerTestCase {
 
     }
 
+    
     @WithMockUser(roles = {"USER"})
     @Test
     public void joinGameTest() throws Exception {
@@ -967,26 +968,58 @@ public class GameControllerTests extends ControllerTestCase {
                 .cowHealth(100)
                 .build();
 
-        
-
-        
-        when(farmerRepository.findByGameIdAndUserId(anyLong(), anyLong())).thenReturn(Optional.empty());
+        when(farmerRepository.findByGameIdAndUserId(anyLong(), anyLong()))
+                .thenReturn(Optional.empty());
         when(farmerRepository.save(eq(uc))).thenReturn(uc);
         when(gameRepository.findById(eq(2L))).thenReturn(Optional.of(c));
 
         MvcResult response = mockMvc
                 .perform(post("/api/game/join?gameId=2").with(csrf()))
-                .andExpect(status().isOk()).andReturn();
+                .andExpect(status().isOk())
+                .andReturn();
 
-        verify(farmerRepository, times(1)).findByGameIdAndUserId(2L, 1L);
+        verify(farmerRepository, times(1))
+                .findByGameIdAndUserId(2L, 1L);
         verify(farmerRepository, times(1)).save(uc);
 
-        
         String responseString = response.getResponse().getContentAsString();
         String cAsJson = mapper.writeValueAsString(c);
 
         assertEquals(responseString, cAsJson);
     }
+
+    @WithMockUser(roles = {"USER"})
+    @Test
+    public void join_hidden_common_test() throws Exception {
+
+        Game hiddenGame = Game.builder()
+                .id(2L)
+                .name("Hidden Game")
+                .hidden(true)
+                .build();
+
+        when(gameRepository.findById(eq(2L)))
+                .thenReturn(Optional.of(hiddenGame));
+
+        MvcResult response = mockMvc
+                .perform(post("/api/game/join?gameId=2").with(csrf()))
+                .andExpect(status().isBadRequest())
+                .andReturn();
+
+        verify(gameRepository, times(1)).findById(eq(2L));
+
+        // Hidden games must not create farmer memberships.
+        verify(farmerRepository, times(0)).save(any());
+
+        // The API must return the appropriate exception.
+        Map<String, Object> responseMap = responseToJson(response);
+
+        assertEquals("CommonsHIddenException", responseMap.get("type"));
+        assertEquals(
+                "Commons with id 2 is hidden",
+                responseMap.get("message"));
+    }
+
 
     @WithMockUser(roles = {"USER"})
     @Test

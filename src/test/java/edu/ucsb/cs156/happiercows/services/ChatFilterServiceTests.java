@@ -108,4 +108,86 @@ public class ChatFilterServiceTests {
         assertEquals("*** axb ***", result.getText());
         assertTrue(result.isCensored());
     }
+
+        @Test
+    public void longer_banned_word_wins_over_shorter_prefix_regardless_of_order() {
+        banned("c", "c++");
+        CensorResult result = chatFilterService.censor("c++ and c");
+        assertEquals("*** and *", result.getText());
+        assertTrue(result.isCensored());
+    }
+
+    @Test
+    public void longer_banned_word_wins_when_stored_after_shorter() {
+        banned("c++", "c");
+        CensorResult result = chatFilterService.censor("c++ and c");
+        assertEquals("*** and *", result.getText());
+        assertTrue(result.isCensored());
+    }
+
+    @Test
+    public void unicode_word_that_expands_when_lowercased_is_censored() {
+        // "İ" lowercases to "i" + U+0307, so the stored word is 5 chars long
+        banned(ChatFilterService.normalize("İNEK"));
+        CensorResult result = chatFilterService.censor("İNEK geldi");
+        assertEquals("**** geldi", result.getText());
+        assertTrue(result.isCensored());
+    }
+
+    @Test
+    public void stored_word_is_matched_even_if_not_already_normalized() {
+        banned("  DaRn ");
+        CensorResult result = chatFilterService.censor("darn");
+        assertEquals("****", result.getText());
+        assertTrue(result.isCensored());
+    }
+
+    @Test
+    public void blank_stored_words_are_ignored() {
+        banned("   ", "darn");
+        CensorResult result = chatFilterService.censor("a darn day");
+        assertEquals("a **** day", result.getText());
+        assertTrue(result.isCensored());
+    }
+
+    @Test
+    public void duplicate_stored_words_still_censor_once() {
+        banned("darn", "darn");
+        CensorResult result = chatFilterService.censor("darn");
+        assertEquals("****", result.getText());
+        assertTrue(result.isCensored());
+    }
+
+    @Test
+    public void shorter_word_does_not_match_inside_expanded_character() {
+        // Banning "i" must not censor the "i" that "İ" lowercases into
+        banned("i");
+        CensorResult result = chatFilterService.censor("İNEK");
+        assertEquals("İNEK", result.getText());
+        assertFalse(result.isCensored());
+    }
+
+    @Test
+    public void emoji_around_a_banned_word_are_kept() {
+        banned("darn");
+        CensorResult result = chatFilterService.censor("😀 darn 😀");
+        assertEquals("😀 **** 😀", result.getText());
+        assertTrue(result.isCensored());
+    }
+
+    @Test
+    public void normalize_trims_and_lowercases_with_expansion() {
+        assertEquals("darn", ChatFilterService.normalize("  DaRn  "));
+        assertEquals("i\u0307nek", ChatFilterService.normalize("İNEK"));
+    }
+
+    @Test
+    public void only_blank_stored_words_censor_nothing() {
+        // If blank words weren't filtered out, the empty pattern would match
+        // between the space and "!" and mark the message as censored
+        banned("   ");
+        CensorResult result = chatFilterService.censor("hello !");
+        assertEquals("hello !", result.getText());
+        assertFalse(result.isCensored());
+    }
 }

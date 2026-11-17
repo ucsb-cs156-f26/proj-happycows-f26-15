@@ -26,6 +26,8 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import org.springframework.dao.DataIntegrityViolationException;
+
 @WebMvcTest(controllers = BannedWordsController.class)
 public class BannedWordsControllerTests extends ControllerTestCase {
 
@@ -154,5 +156,22 @@ public class BannedWordsControllerTests extends ControllerTestCase {
         Map<String, Object> json = responseToJson(response);
         assertEquals("EntityNotFoundException", json.get("type"));
         assertEquals("BannedWord with id 99 not found", json.get("message"));
+    }
+
+    @WithMockUser(roles = { "ADMIN", "USER" })
+    @Test
+    public void admin_gets_400_when_concurrent_insert_violates_unique_constraint() throws Exception {
+        // findByWord says the word is new, but by the time we save, another request has inserted it
+        BannedWord toSave = BannedWord.builder().word("darn").build();
+        when(bannedWordRepository.findByWord("darn")).thenReturn(Optional.empty());
+        when(bannedWordRepository.save(toSave))
+                .thenThrow(new DataIntegrityViolationException("duplicate key"));
+
+        MvcResult response = mockMvc.perform(
+                post("/api/admin/bannedwords/post").param("word", "darn").with(csrf()))
+                .andExpect(status().isBadRequest()).andReturn();
+
+        verify(bannedWordRepository, times(1)).save(toSave);
+        assertEquals(Map.of("message", "Word 'darn' is already banned"), responseToJson(response));
     }
 }

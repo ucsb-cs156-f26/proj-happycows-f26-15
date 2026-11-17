@@ -197,12 +197,12 @@ import java.util.stream.StreamSupport;
 <span class="fc" id="L197">            throw new IllegalArgumentException(&quot;Cow Price cannot be less than 0.01&quot;);</span>
         }
 
-<span class="pc bpc" id="L200" title="2 of 4 branches missed.">        if (!Double.isFinite(params.getPurchaseFee()) || params.getPurchaseFee() &lt; 0) {</span>
-<span class="nc" id="L201">            throw new IllegalArgumentException(&quot;Purchase Fee must be a non-negative finite number&quot;);</span>
+<span class="fc bfc" id="L200" title="All 4 branches covered.">        if (!Double.isFinite(params.getPurchaseFee()) || params.getPurchaseFee() &lt; 0) {</span>
+<span class="fc" id="L201">            throw new IllegalArgumentException(&quot;Purchase Fee must be a non-negative finite number&quot;);</span>
         }
 
-<span class="pc bpc" id="L204" title="2 of 4 branches missed.">        if (!Double.isFinite(params.getSellingFee()) || params.getSellingFee() &lt; 0) {</span>
-<span class="nc" id="L205">            throw new IllegalArgumentException(&quot;Selling Fee must be a non-negative finite number&quot;);</span>
+<span class="fc bfc" id="L204" title="All 4 branches covered.">        if (!Double.isFinite(params.getSellingFee()) || params.getSellingFee() &lt; 0) {</span>
+<span class="fc" id="L205">            throw new IllegalArgumentException(&quot;Selling Fee must be a non-negative finite number&quot;);</span>
         }
 
 <span class="fc bfc" id="L208" title="All 2 branches covered.">        if (params.getMilkPrice() &lt; 0.01) {</span>
@@ -281,12 +281,12 @@ import java.util.stream.StreamSupport;
 <span class="fc" id="L281">            throw new IllegalArgumentException(&quot;Cow Price cannot be less than 0.01&quot;);</span>
         }
 
-<span class="pc bpc" id="L284" title="2 of 4 branches missed.">        if (!Double.isFinite(params.getPurchaseFee()) || params.getPurchaseFee() &lt; 0) {</span>
-<span class="nc" id="L285">            throw new IllegalArgumentException(&quot;Purchase Fee must be a non-negative finite number&quot;);</span>
+<span class="fc bfc" id="L284" title="All 4 branches covered.">        if (!Double.isFinite(params.getPurchaseFee()) || params.getPurchaseFee() &lt; 0) {</span>
+<span class="fc" id="L285">            throw new IllegalArgumentException(&quot;Purchase Fee must be a non-negative finite number&quot;);</span>
         }
 
-<span class="pc bpc" id="L288" title="2 of 4 branches missed.">        if (!Double.isFinite(params.getSellingFee()) || params.getSellingFee() &lt; 0) {</span>
-<span class="nc" id="L289">            throw new IllegalArgumentException(&quot;Selling Fee must be a non-negative finite number&quot;);</span>
+<span class="fc bfc" id="L288" title="All 4 branches covered.">        if (!Double.isFinite(params.getSellingFee()) || params.getSellingFee() &lt; 0) {</span>
+<span class="fc" id="L289">            throw new IllegalArgumentException(&quot;Selling Fee must be a non-negative finite number&quot;);</span>
         }
 
 <span class="fc bfc" id="L292" title="All 2 branches covered.">        if (params.getMilkPrice() &lt; 0.01) {</span>

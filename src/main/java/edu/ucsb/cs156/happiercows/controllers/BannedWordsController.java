@@ -17,6 +17,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import org.springframework.dao.DataIntegrityViolationException;
+
 /** Admin-only API for maintaining the list of words censored in chat. */
 @Slf4j
 @Tag(name = "Banned Words")
@@ -49,8 +51,14 @@ public class BannedWordsController extends ApiController {
                     .body(genericMessage("Word '%s' is already banned".formatted(normalized)));
         }
 
-        BannedWord saved = bannedWordRepository.save(BannedWord.builder().word(normalized).build());
-        return ResponseEntity.ok(saved);
+        try {
+            BannedWord saved = bannedWordRepository.save(BannedWord.builder().word(normalized).build());
+            return ResponseEntity.ok(saved);
+        } catch (DataIntegrityViolationException e) {
+            // Another request inserted the same word between findByWord() and save()
+            return ResponseEntity.badRequest()
+                    .body(genericMessage("Word '%s' is already banned".formatted(normalized)));
+        }
     }
 
     @Operation(summary = "Remove a banned word")

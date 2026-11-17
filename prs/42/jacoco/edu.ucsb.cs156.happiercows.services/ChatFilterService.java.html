@@ -6,48 +6,103 @@ import edu.ucsb.cs156.happiercows.repositories.BannedWordRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
+import java.util.Locale;
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
 /** Replaces banned words in chat messages with asterisks. */
 @Service
-<span class="fc" id="L16">public class ChatFilterService {</span>
+<span class="fc" id="L20">public class ChatFilterService {</span>
 
-    // A match must not have a letter, digit, or underscore directly before or after it,
-    // so banning &quot;cow&quot; does not censor &quot;cowboy&quot;.
-    private static final String NOT_WORD_CHAR_BEFORE = &quot;(?&lt;![\\p{L}\\p{N}_])&quot;;
-    private static final String NOT_WORD_CHAR_AFTER = &quot;(?![\\p{L}\\p{N}_])&quot;;
+    // A match must not have a letter, combining mark, digit, or underscore directly
+    // before or after it, so banning &quot;cow&quot; does not censor &quot;cowboy&quot;.
+    private static final String NOT_WORD_CHAR_BEFORE = &quot;(?&lt;![\\p{L}\\p{M}\\p{N}_])&quot;;
+    private static final String NOT_WORD_CHAR_AFTER = &quot;(?![\\p{L}\\p{M}\\p{N}_])&quot;;
 
     @Autowired
     private BannedWordRepository bannedWordRepository;
 
+    /**
+     * Lowercases each character on its own with Locale.ROOT. Used both when storing a
+     * banned word and when matching a message, so the two always agree. Some characters
+     * expand when lowercased (e.g. &quot;İ&quot; becomes &quot;i&quot; plus a combining dot).
+     */
+    public static String fold(String text) {
+<span class="fc" id="L36">        StringBuilder sb = new StringBuilder();</span>
+<span class="fc" id="L37">        text.codePoints().forEach(cp -&gt; sb.append(lowerCodePoint(cp)));</span>
+<span class="fc" id="L38">        return sb.toString();</span>
+    }
+
+    /** How a banned word is stored: trimmed, then folded. */
+    public static String normalize(String word) {
+<span class="fc" id="L43">        return fold(word.trim());</span>
+    }
+
+    private static String lowerCodePoint(int cp) {
+<span class="fc" id="L47">        return new String(Character.toChars(cp)).toLowerCase(Locale.ROOT);</span>
+    }
+
     public CensorResult censor(String message) {
-<span class="fc" id="L27">        List&lt;String&gt; words = StreamSupport</span>
-<span class="fc" id="L28">                .stream(bannedWordRepository.findAll().spliterator(), false)</span>
-<span class="fc" id="L29">                .map(BannedWord::getWord)</span>
-<span class="fc" id="L30">                .collect(Collectors.toList());</span>
+        // Longest first, so &quot;c++&quot; is matched before &quot;c&quot; when both are banned
+<span class="fc" id="L52">        List&lt;String&gt; words = StreamSupport</span>
+<span class="fc" id="L53">                .stream(bannedWordRepository.findAll().spliterator(), false)</span>
+<span class="fc" id="L54">                .map(BannedWord::getWord)</span>
+<span class="fc" id="L55">                .map(ChatFilterService::normalize)</span>
+<span class="fc bfc" id="L56" title="All 2 branches covered.">                .filter(w -&gt; !w.isEmpty())</span>
+<span class="fc" id="L57">                .distinct()</span>
+<span class="fc" id="L58">                .sorted(Comparator.comparingInt(String::length).reversed())</span>
+<span class="fc" id="L59">                .collect(Collectors.toList());</span>
 
-<span class="fc bfc" id="L32" title="All 2 branches covered.">        if (words.isEmpty()) {</span>
-<span class="fc" id="L33">            return new CensorResult(message, false);</span>
+<span class="fc bfc" id="L61" title="All 2 branches covered.">        if (words.isEmpty()) {</span>
+<span class="fc" id="L62">            return new CensorResult(message, false);</span>
         }
 
-<span class="fc" id="L36">        String alternatives = words.stream()</span>
-<span class="fc" id="L37">                .map(Pattern::quote)</span>
-<span class="fc" id="L38">                .collect(Collectors.joining(&quot;|&quot;));</span>
+        // Fold the message, remembering which original characters each folded char came from
+<span class="fc" id="L66">        StringBuilder folded = new StringBuilder();</span>
+<span class="fc" id="L67">        List&lt;Integer&gt; originalStart = new ArrayList&lt;&gt;();</span>
+<span class="fc" id="L68">        List&lt;Integer&gt; originalEnd = new ArrayList&lt;&gt;();</span>
+<span class="fc" id="L69">        int i = 0;</span>
+<span class="fc bfc" id="L70" title="All 2 branches covered.">        while (i &lt; message.length()) {</span>
+<span class="fc" id="L71">            int cp = message.codePointAt(i);</span>
+<span class="fc" id="L72">            int next = i + Character.charCount(cp);</span>
+<span class="fc" id="L73">            String lower = lowerCodePoint(cp);</span>
+<span class="fc bfc" id="L74" title="All 2 branches covered.">            for (int k = 0; k &lt; lower.length(); k++) {</span>
+<span class="fc" id="L75">                originalStart.add(i);</span>
+<span class="fc" id="L76">                originalEnd.add(next);</span>
+            }
+<span class="fc" id="L78">            folded.append(lower);</span>
+<span class="fc" id="L79">            i = next;</span>
+<span class="fc" id="L80">        }</span>
 
-<span class="fc" id="L40">        Pattern pattern = Pattern.compile(</span>
-                NOT_WORD_CHAR_BEFORE + &quot;(?:&quot; + alternatives + &quot;)&quot; + NOT_WORD_CHAR_AFTER,
-                Pattern.CASE_INSENSITIVE | Pattern.UNICODE_CASE);
+<span class="fc" id="L82">        String alternatives = words.stream()</span>
+<span class="fc" id="L83">                .map(Pattern::quote)</span>
+<span class="fc" id="L84">                .collect(Collectors.joining(&quot;|&quot;));</span>
+<span class="fc" id="L85">        Pattern pattern = Pattern.compile(</span>
+                NOT_WORD_CHAR_BEFORE + &quot;(?:&quot; + alternatives + &quot;)&quot; + NOT_WORD_CHAR_AFTER);
 
-<span class="fc bfc" id="L44" title="All 2 branches covered.">        if (!pattern.matcher(message).find()) {</span>
-<span class="fc" id="L45">            return new CensorResult(message, false);</span>
+<span class="fc" id="L88">        Matcher matcher = pattern.matcher(folded);</span>
+<span class="fc" id="L89">        StringBuilder result = new StringBuilder();</span>
+<span class="fc" id="L90">        int last = 0;</span>
+<span class="fc" id="L91">        boolean censored = false;</span>
+<span class="fc bfc" id="L92" title="All 2 branches covered.">        while (matcher.find()) {</span>
+<span class="fc" id="L93">            int start = originalStart.get(matcher.start());</span>
+<span class="fc" id="L94">            int end = originalEnd.get(matcher.end() - 1);</span>
+<span class="fc" id="L95">            result.append(message, last, start)</span>
+<span class="fc" id="L96">                    .append(&quot;*&quot;.repeat(message.codePointCount(start, end)));</span>
+<span class="fc" id="L97">            last = end;</span>
+<span class="fc" id="L98">            censored = true;</span>
+<span class="fc" id="L99">        }</span>
+
+<span class="fc bfc" id="L101" title="All 2 branches covered.">        if (!censored) {</span>
+<span class="fc" id="L102">            return new CensorResult(message, false);</span>
         }
-
-<span class="fc" id="L48">        String censoredText = pattern.matcher(message)</span>
-<span class="fc" id="L49">                .replaceAll(match -&gt; &quot;*&quot;.repeat(match.group().length()));</span>
-<span class="fc" id="L50">        return new CensorResult(censoredText, true);</span>
+<span class="fc" id="L104">        result.append(message.substring(last));</span>
+<span class="fc" id="L105">        return new CensorResult(result.toString(), true);</span>
     }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.15.202606040825</span></div></body></html>

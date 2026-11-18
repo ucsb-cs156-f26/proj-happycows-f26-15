@@ -9,7 +9,11 @@ You will need the environment variables documented in the file `/docs/environmen
 
 To include deployed commit information in Developer Info, use the recommended command:
 
-* <tt>dokku git:set <i>appname</i> keep-git-dir true</tt>
+We also recommend (but no longer require) this command:
+
+<tt>dokku git:set <i>appname</i> keep-git-dir true</tt>
+
+This keeps the .git directory in the Docker build so the Developer page can show the deployed commit id. Without it, the build and deploy still succeed, but the commit id and message show as unknown. See Commit info and keep-git-dir below.
 
 ## Docker build layout
 
@@ -117,4 +121,14 @@ dokku letsencrypt:set happycows-qa email yourEmail@ucsb.edu
 dokku letsencrypt:enable happycows-qa
 dokku config:set happycows-qa --no-restart GOOGLE_CLIENT_ID=get-value-from-google
 dokku config:set happycows-qa --no-restart GOOGLE_CLIENT_SECRET=get-value-from-google
+```
+
+# Changing `keep-git-dir`
+
+To check or change the setting on an existing app:
+
+```
+dokku git:report happycows --git-keep-git-dir
+dokku git:set happycows keep-git-dir true
+dokku ps:rebuild happycows
 ```

@@ -14,17 +14,19 @@ vi.mock("main/utils/currentUser", async () => ({
   useCurrentUser: vi.fn(),
   hasRole: vi.fn(),
 }));
-// mock useparams
+
+// Mock useParams
 vi.mock("react-router", async () => ({
   ...(await vi.importActual("react-router")),
   useParams: vi.fn(),
 }));
+
 describe("ManageCows tests", () => {
   const mockSetMessage = vi.fn();
   const mockOpenModal = vi.fn();
 
   test("renders without crashing", () => {
-    useParams.mockReturnValue({ userId: 1 }); // Replace with your desired mock values
+    useParams.mockReturnValue({ userId: 1 });
 
     currentUserModule.useCurrentUser.mockReturnValue({
       data: {},
@@ -45,8 +47,8 @@ describe("ManageCows tests", () => {
     );
   });
 
-  test("renders message when admin visit other pages", async () => {
-    useParams.mockReturnValue({ userId: 1 }); // Replace with your desired mock values
+  test("renders message when admin visits other pages", async () => {
+    useParams.mockReturnValue({ userId: 1 });
 
     currentUserModule.useCurrentUser.mockReturnValue({
       data: {
@@ -57,7 +59,9 @@ describe("ManageCows tests", () => {
         },
       },
     });
+
     currentUserModule.hasRole.mockReturnValue(true);
+
     const mockBuy = vi.fn();
     const mockSell = vi.fn();
 
@@ -73,6 +77,7 @@ describe("ManageCows tests", () => {
     );
 
     const messageElement = screen.getByTestId("ManageCows-ViewOnly");
+
     expect(messageElement).toBeInTheDocument();
     expect(messageElement).toHaveTextContent(
       "This page is for viewing only, cannot buy and sell cows.",
@@ -86,7 +91,7 @@ describe("ManageCows tests", () => {
   });
 
   test('calls setMessage with "buy" when the buy button is clicked', () => {
-    useParams.mockReturnValue({ userId: undefined }); // Replace with your desired mock values
+    useParams.mockReturnValue({ userId: undefined });
 
     currentUserModule.useCurrentUser.mockReturnValue({
       data: {
@@ -97,7 +102,9 @@ describe("ManageCows tests", () => {
         },
       },
     });
+
     currentUserModule.hasRole.mockReturnValue(true);
+
     render(
       <QueryClientProvider client={queryClient}>
         <ManageCows
@@ -109,12 +116,13 @@ describe("ManageCows tests", () => {
     );
 
     fireEvent.click(screen.getByTestId("buy-cow-button"));
+
     expect(mockSetMessage).toHaveBeenCalledWith("buy");
     expect(mockOpenModal).toHaveBeenCalled();
   });
 
   test('calls setMessage with "sell" when the sell button is clicked', () => {
-    useParams.mockReturnValue({ userId: undefined }); // Replace with your desired mock values
+    useParams.mockReturnValue({ userId: undefined });
 
     currentUserModule.useCurrentUser.mockReturnValue({
       data: {
@@ -125,7 +133,9 @@ describe("ManageCows tests", () => {
         },
       },
     });
+
     currentUserModule.hasRole.mockReturnValue(true);
+
     render(
       <QueryClientProvider client={queryClient}>
         <ManageCows
@@ -137,7 +147,78 @@ describe("ManageCows tests", () => {
     );
 
     fireEvent.click(screen.getByTestId("sell-cow-button"));
+
     expect(mockSetMessage).toHaveBeenCalledWith("sell");
     expect(mockOpenModal).toHaveBeenCalled();
+  });
+
+  // New tests for purchase and selling fee display
+
+  test("displays configured purchase and selling fees", () => {
+    useParams.mockReturnValue({ userId: undefined });
+
+    currentUserModule.useCurrentUser.mockReturnValue({
+      data: {},
+    });
+
+    currentUserModule.hasRole.mockReturnValue(false);
+
+    const game = {
+      cowPrice: 100,
+      milkPrice: 1,
+      purchaseFee: 5,
+      sellingFee: 3,
+    };
+
+    render(
+      <QueryClientProvider client={queryClient}>
+        <ManageCows farmer={farmerFixtures.oneFarmer[0]} game={game} />
+      </QueryClientProvider>,
+    );
+
+    expect(screen.getByTestId("ManageCows-purchase-fee")).toHaveTextContent(
+      "Purchase Fee: $5 per cow",
+    );
+
+    expect(screen.getByTestId("ManageCows-selling-fee")).toHaveTextContent(
+      "Selling Fee: $3 per cow",
+    );
+
+    expect(
+      screen.getByText(/Buying cows costs the current cow price plus/),
+    ).toBeInTheDocument();
+
+    expect(
+      screen.getByText(/minus the selling fee per cow/),
+    ).toBeInTheDocument();
+  });
+
+  test("displays zero fees when fees are not configured", () => {
+    useParams.mockReturnValue({ userId: undefined });
+
+    currentUserModule.useCurrentUser.mockReturnValue({
+      data: {},
+    });
+
+    currentUserModule.hasRole.mockReturnValue(false);
+
+    const game = {
+      cowPrice: 100,
+      milkPrice: 1,
+    };
+
+    render(
+      <QueryClientProvider client={queryClient}>
+        <ManageCows farmer={farmerFixtures.oneFarmer[0]} game={game} />
+      </QueryClientProvider>,
+    );
+
+    expect(screen.getByTestId("ManageCows-purchase-fee")).toHaveTextContent(
+      "Purchase Fee: $0 per cow",
+    );
+
+    expect(screen.getByTestId("ManageCows-selling-fee")).toHaveTextContent(
+      "Selling Fee: $0 per cow",
+    );
   });
 });

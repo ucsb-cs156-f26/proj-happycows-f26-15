@@ -3,16 +3,15 @@ import { Card, Button, Row, Col } from "react-bootstrap";
 import { useCurrentUser, hasRole } from "main/utils/currentUser";
 import { useParams } from "react-router";
 
-// add parameters
 const ManageCows = ({ farmer, game, setMessage, openModal }) => {
-  // update cowPrice from fixture
   const { data: currentUser } = useCurrentUser();
   let { userId } = useParams();
   userId = userId ? parseInt(userId, 10) : NaN;
+
   // Stryker disable all
   const isViewOnly = hasRole(currentUser, "ROLE_ADMIN") && !isNaN(userId);
-
   // Stryker restore all
+
   return (
     <Card data-testid="ManageCows">
       <Card.Header as="h5" className="woodenboardtable">
@@ -24,7 +23,6 @@ const ManageCows = ({ farmer, game, setMessage, openModal }) => {
           { backgroundColor: "rgb(245, 210, 140)" }
         }
       >
-        {/* change $10 to info from fixture */}
         <Card.Title className="text-center">
           💵 Market Cow Price: ${game?.cowPrice}
         </Card.Title>
@@ -34,7 +32,22 @@ const ManageCows = ({ farmer, game, setMessage, openModal }) => {
         <Card.Title className="text-center">
           🥛 Current Milk Price: ${game?.milkPrice}
         </Card.Title>
-        {/* when the ID doesnt match, dont show the buy/sell button */}
+
+        {/* Display purchase and selling fees to players */}
+        <p
+          className="text-center small mb-1"
+          data-testid="ManageCows-purchase-fee"
+        >
+          Purchase Fee: ${game?.purchaseFee ?? 0} per cow
+        </p>
+        <p
+          className="text-center small mb-3"
+          data-testid="ManageCows-selling-fee"
+        >
+          Selling Fee: ${game?.sellingFee ?? 0} per cow
+        </p>
+
+        {/* When viewing another user's farm as admin, hide buy/sell buttons */}
         {isViewOnly ? (
           <>
             <p data-testid="ManageCows-ViewOnly">
@@ -51,7 +64,7 @@ const ManageCows = ({ farmer, game, setMessage, openModal }) => {
                     setMessage("buy");
                     openModal();
                   }}
-                  data-testid={"buy-cow-button"}
+                  data-testid="buy-cow-button"
                 >
                   Buy cows
                 </Button>
@@ -63,22 +76,25 @@ const ManageCows = ({ farmer, game, setMessage, openModal }) => {
                     setMessage("sell");
                     openModal();
                   }}
-                  data-testid={"sell-cow-button"}
+                  data-testid="sell-cow-button"
                 >
                   Sell cows
                 </Button>
               </Col>
             </Row>
-            <p>
+            <div className="mt-2">
               <b>Note:</b>
               <ul>
-                <li>Buying cows buys at the current cow price.</li>
                 <li>
-                  Selling cows sells at the current cow price multiplied by the
-                  average cow health (as a percentage.)
+                  Buying cows costs the current cow price plus the purchase fee
+                  per cow.
+                </li>
+                <li>
+                  Selling cows earns the current cow price multiplied by average
+                  cow health (as a percentage), minus the selling fee per cow.
                 </li>
               </ul>
-            </p>
+            </div>
           </>
         )}
       </Card.Body>

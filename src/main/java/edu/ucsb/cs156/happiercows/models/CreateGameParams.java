@@ -15,6 +15,10 @@ public class CreateGameParams {
     @NumberFormat
     private double cowPrice;
     @NumberFormat
+    private double purchaseFee;
+    @NumberFormat
+    private double sellingFee;
+    @NumberFormat
     private double milkPrice;
     @NumberFormat
     private double startingBalance;

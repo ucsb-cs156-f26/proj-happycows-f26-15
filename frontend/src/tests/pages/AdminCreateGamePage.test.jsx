@@ -135,6 +135,8 @@ describe("AdminCreateGamePage tests", () => {
     // POST contains the suffix .000Z, which Java's LocalDateTime.parse ignores. [1]
 
     const expectedGame = {
+      purchaseFee: 0,
+      sellingFee: 0,
       name: "My New Game",
       hidden: false,
       startingBalance: 500,

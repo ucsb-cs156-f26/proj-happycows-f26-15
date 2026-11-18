@@ -166,54 +166,64 @@ import java.util.stream.StreamSupport;
 
 <span class="fc" id="L167">        updated.setName(params.getName());</span>
 <span class="fc" id="L168">        updated.setCowPrice(params.getCowPrice());</span>
-<span class="fc" id="L169">        updated.setMilkPrice(params.getMilkPrice());</span>
-<span class="fc" id="L170">        updated.setStartingBalance(params.getStartingBalance());</span>
-<span class="fc" id="L171">        updated.setStartingDate(params.getStartingDate());</span>
-<span class="fc" id="L172">        updated.setLastDate(params.getLastDate());</span>
-<span class="fc" id="L173">        updated.setShowLeaderboard(params.getShowLeaderboard());</span>
-<span class="fc" id="L174">        updated.setShowChat(params.getShowChat());</span>
-<span class="fc" id="L175">        updated.setDegradationRate(params.getDegradationRate());</span>
-<span class="fc" id="L176">        updated.setCapacityPerUser(params.getCapacityPerUser());</span>
-<span class="fc" id="L177">        updated.setCarryingCapacity(params.getCarryingCapacity());</span>
-<span class="fc bfc" id="L178" title="All 2 branches covered.">        if (params.getAboveCapacityHealthUpdateStrategy() != null) {</span>
-<span class="fc" id="L179">            updated.setAboveCapacityHealthUpdateStrategy(CowHealthUpdateStrategies.valueOf(params.getAboveCapacityHealthUpdateStrategy()));</span>
+<span class="fc" id="L169">        updated.setPurchaseFee(params.getPurchaseFee());</span>
+<span class="fc" id="L170">        updated.setSellingFee(params.getSellingFee());</span>
+<span class="fc" id="L171">        updated.setMilkPrice(params.getMilkPrice());</span>
+<span class="fc" id="L172">        updated.setStartingBalance(params.getStartingBalance());</span>
+<span class="fc" id="L173">        updated.setStartingDate(params.getStartingDate());</span>
+<span class="fc" id="L174">        updated.setLastDate(params.getLastDate());</span>
+<span class="fc" id="L175">        updated.setShowLeaderboard(params.getShowLeaderboard());</span>
+<span class="fc" id="L176">        updated.setShowChat(params.getShowChat());</span>
+<span class="fc" id="L177">        updated.setDegradationRate(params.getDegradationRate());</span>
+<span class="fc" id="L178">        updated.setCapacityPerUser(params.getCapacityPerUser());</span>
+<span class="fc" id="L179">        updated.setCarryingCapacity(params.getCarryingCapacity());</span>
+<span class="fc bfc" id="L180" title="All 2 branches covered.">        if (params.getAboveCapacityHealthUpdateStrategy() != null) {</span>
+<span class="fc" id="L181">            updated.setAboveCapacityHealthUpdateStrategy(CowHealthUpdateStrategies.valueOf(params.getAboveCapacityHealthUpdateStrategy()));</span>
         }
-<span class="fc bfc" id="L181" title="All 2 branches covered.">        if (params.getBelowCapacityHealthUpdateStrategy() != null) {</span>
-<span class="fc" id="L182">            updated.setBelowCapacityHealthUpdateStrategy(CowHealthUpdateStrategies.valueOf(params.getBelowCapacityHealthUpdateStrategy()));</span>
+<span class="fc bfc" id="L183" title="All 2 branches covered.">        if (params.getBelowCapacityHealthUpdateStrategy() != null) {</span>
+<span class="fc" id="L184">            updated.setBelowCapacityHealthUpdateStrategy(CowHealthUpdateStrategies.valueOf(params.getBelowCapacityHealthUpdateStrategy()));</span>
         }
 
-<span class="fc bfc" id="L185" title="All 2 branches covered.">        if (params.getDegradationRate() &lt; 0) {</span>
-<span class="fc" id="L186">            throw new IllegalArgumentException(&quot;Degradation Rate cannot be negative&quot;);</span>
+<span class="fc bfc" id="L187" title="All 2 branches covered.">        if (params.getDegradationRate() &lt; 0) {</span>
+<span class="fc" id="L188">            throw new IllegalArgumentException(&quot;Degradation Rate cannot be negative&quot;);</span>
         }
 
         // Reference: frontend/src/main/components/Game/GameForm.js
-<span class="fc bfc" id="L190" title="All 2 branches covered.">        if (params.getName().equals(&quot;&quot;)) {</span>
-<span class="fc" id="L191">            throw new IllegalArgumentException(&quot;Name cannot be empty&quot;);</span>
+<span class="fc bfc" id="L192" title="All 2 branches covered.">        if (params.getName().equals(&quot;&quot;)) {</span>
+<span class="fc" id="L193">            throw new IllegalArgumentException(&quot;Name cannot be empty&quot;);</span>
         }
 
-<span class="fc bfc" id="L194" title="All 2 branches covered.">        if (params.getCowPrice() &lt; 0.01) {</span>
-<span class="fc" id="L195">            throw new IllegalArgumentException(&quot;Cow Price cannot be less than 0.01&quot;);</span>
+<span class="fc bfc" id="L196" title="All 2 branches covered.">        if (params.getCowPrice() &lt; 0.01) {</span>
+<span class="fc" id="L197">            throw new IllegalArgumentException(&quot;Cow Price cannot be less than 0.01&quot;);</span>
         }
 
-<span class="fc bfc" id="L198" title="All 2 branches covered.">        if (params.getMilkPrice() &lt; 0.01) {</span>
-<span class="fc" id="L199">            throw new IllegalArgumentException(&quot;Milk Price cannot be less than 0.01&quot;);</span>
+<span class="fc bfc" id="L200" title="All 4 branches covered.">        if (!Double.isFinite(params.getPurchaseFee()) || params.getPurchaseFee() &lt; 0) {</span>
+<span class="fc" id="L201">            throw new IllegalArgumentException(&quot;Purchase Fee must be a non-negative finite number&quot;);</span>
         }
 
-<span class="fc bfc" id="L202" title="All 2 branches covered.">        if (params.getStartingBalance() &lt; 0) {</span>
-<span class="fc" id="L203">            throw new IllegalArgumentException(&quot;Starting Balance cannot be negative&quot;);</span>
+<span class="fc bfc" id="L204" title="All 4 branches covered.">        if (!Double.isFinite(params.getSellingFee()) || params.getSellingFee() &lt; 0) {</span>
+<span class="fc" id="L205">            throw new IllegalArgumentException(&quot;Selling Fee must be a non-negative finite number&quot;);</span>
         }
 
-<span class="fc bfc" id="L206" title="All 2 branches covered.">        if (params.getCarryingCapacity() &lt; 1) {</span>
-<span class="fc" id="L207">            throw new IllegalArgumentException(&quot;Carrying Capacity cannot be less than 1&quot;);</span>
+<span class="fc bfc" id="L208" title="All 2 branches covered.">        if (params.getMilkPrice() &lt; 0.01) {</span>
+<span class="fc" id="L209">            throw new IllegalArgumentException(&quot;Milk Price cannot be less than 0.01&quot;);</span>
         }
 
-<span class="fc" id="L210">        validateDates(params);</span>
+<span class="fc bfc" id="L212" title="All 2 branches covered.">        if (params.getStartingBalance() &lt; 0) {</span>
+<span class="fc" id="L213">            throw new IllegalArgumentException(&quot;Starting Balance cannot be negative&quot;);</span>
+        }
 
-<span class="fc" id="L212">        updated.setHidden(params.isHidden());</span>
-<span class="fc" id="L213">        updated.setCourseId(params.getCourseId());</span>
-<span class="fc" id="L214">        gameRepository.save(updated);</span>
+<span class="fc bfc" id="L216" title="All 2 branches covered.">        if (params.getCarryingCapacity() &lt; 1) {</span>
+<span class="fc" id="L217">            throw new IllegalArgumentException(&quot;Carrying Capacity cannot be less than 1&quot;);</span>
+        }
 
-<span class="fc" id="L216">        return ResponseEntity.status(status).build();</span>
+<span class="fc" id="L220">        validateDates(params);</span>
+
+<span class="fc" id="L222">        updated.setHidden(params.isHidden());</span>
+<span class="fc" id="L223">        updated.setCourseId(params.getCourseId());</span>
+<span class="fc" id="L224">        gameRepository.save(updated);</span>
+
+<span class="fc" id="L226">        return ResponseEntity.status(status).build();</span>
     }
 
     @Operation(summary = &quot;Get a specific game&quot;)
@@ -222,10 +232,10 @@ import java.util.stream.StreamSupport;
     public Game getGameById(
             @Parameter(name=&quot;id&quot;) @RequestParam Long id) throws JsonProcessingException {
 
-<span class="fc" id="L225">        Game game = gameRepository.findById(id)</span>
-<span class="fc" id="L226">                .orElseThrow(() -&gt; new EntityNotFoundException(&quot;Game&quot;, id));</span>
+<span class="fc" id="L235">        Game game = gameRepository.findById(id)</span>
+<span class="fc" id="L236">                .orElseThrow(() -&gt; new EntityNotFoundException(&quot;Game&quot;, id));</span>
 
-<span class="fc" id="L228">        return game;</span>
+<span class="fc" id="L238">        return game;</span>
     }
 
     @Operation(summary = &quot;Create a new game&quot;)
@@ -235,63 +245,73 @@ import java.util.stream.StreamSupport;
             @Parameter(name=&quot;request body&quot;) @RequestBody CreateGameParams params
     ) throws JsonProcessingException {
 
-<span class="fc" id="L238">        var builder = Game.builder()</span>
-<span class="fc" id="L239">                .name(params.getName())</span>
-<span class="fc" id="L240">                .cowPrice(params.getCowPrice())</span>
-<span class="fc" id="L241">                .milkPrice(params.getMilkPrice())</span>
-<span class="fc" id="L242">                .startingBalance(params.getStartingBalance())</span>
-<span class="fc" id="L243">                .startingDate(params.getStartingDate())</span>
-<span class="fc" id="L244">                .lastDate(params.getLastDate())</span>
-<span class="fc" id="L245">                .degradationRate(params.getDegradationRate())</span>
-<span class="fc" id="L246">                .showLeaderboard(params.getShowLeaderboard())</span>
-<span class="fc" id="L247">                .showChat(params.getShowChat())</span>
-<span class="fc" id="L248">                .capacityPerUser(params.getCapacityPerUser())</span>
-<span class="fc" id="L249">                .carryingCapacity(params.getCarryingCapacity())</span>
-<span class="fc" id="L250">                .hidden(params.isHidden())</span>
-<span class="fc" id="L251">                .courseId(params.getCourseId());</span>
+<span class="fc" id="L248">        var builder = Game.builder()</span>
+<span class="fc" id="L249">                .name(params.getName())</span>
+<span class="fc" id="L250">                .cowPrice(params.getCowPrice())</span>
+<span class="fc" id="L251">                .purchaseFee(params.getPurchaseFee())</span>
+<span class="fc" id="L252">                .sellingFee(params.getSellingFee())</span>
+<span class="fc" id="L253">                .milkPrice(params.getMilkPrice())</span>
+<span class="fc" id="L254">                .startingBalance(params.getStartingBalance())</span>
+<span class="fc" id="L255">                .startingDate(params.getStartingDate())</span>
+<span class="fc" id="L256">                .lastDate(params.getLastDate())</span>
+<span class="fc" id="L257">                .degradationRate(params.getDegradationRate())</span>
+<span class="fc" id="L258">                .showLeaderboard(params.getShowLeaderboard())</span>
+<span class="fc" id="L259">                .showChat(params.getShowChat())</span>
+<span class="fc" id="L260">                .capacityPerUser(params.getCapacityPerUser())</span>
+<span class="fc" id="L261">                .carryingCapacity(params.getCarryingCapacity())</span>
+<span class="fc" id="L262">                .hidden(params.isHidden())</span>
+<span class="fc" id="L263">                .courseId(params.getCourseId());</span>
 
         // ok to set null values for these, so old backend still works
-<span class="fc bfc" id="L254" title="All 2 branches covered.">        if (params.getAboveCapacityHealthUpdateStrategy() != null) {</span>
-<span class="fc" id="L255">            builder.aboveCapacityHealthUpdateStrategy(CowHealthUpdateStrategies.valueOf(params.getAboveCapacityHealthUpdateStrategy()));</span>
+<span class="fc bfc" id="L266" title="All 2 branches covered.">        if (params.getAboveCapacityHealthUpdateStrategy() != null) {</span>
+<span class="fc" id="L267">            builder.aboveCapacityHealthUpdateStrategy(CowHealthUpdateStrategies.valueOf(params.getAboveCapacityHealthUpdateStrategy()));</span>
         }
-<span class="fc bfc" id="L257" title="All 2 branches covered.">        if (params.getBelowCapacityHealthUpdateStrategy() != null) {</span>
-<span class="fc" id="L258">            builder.belowCapacityHealthUpdateStrategy(CowHealthUpdateStrategies.valueOf(params.getBelowCapacityHealthUpdateStrategy()));</span>
+<span class="fc bfc" id="L269" title="All 2 branches covered.">        if (params.getBelowCapacityHealthUpdateStrategy() != null) {</span>
+<span class="fc" id="L270">            builder.belowCapacityHealthUpdateStrategy(CowHealthUpdateStrategies.valueOf(params.getBelowCapacityHealthUpdateStrategy()));</span>
         }
 
-<span class="fc" id="L261">        Game game = builder.build();</span>
+<span class="fc" id="L273">        Game game = builder.build();</span>
 
         // Reference: frontend/src/main/components/Game/GameForm.js
-<span class="fc bfc" id="L264" title="All 2 branches covered.">        if (params.getName().equals(&quot;&quot;)) {</span>
-<span class="fc" id="L265">            throw new IllegalArgumentException(&quot;Name cannot be empty&quot;);</span>
+<span class="fc bfc" id="L276" title="All 2 branches covered.">        if (params.getName().equals(&quot;&quot;)) {</span>
+<span class="fc" id="L277">            throw new IllegalArgumentException(&quot;Name cannot be empty&quot;);</span>
         }
 
-<span class="fc bfc" id="L268" title="All 2 branches covered.">        if (params.getCowPrice() &lt; 0.01) {</span>
-<span class="fc" id="L269">            throw new IllegalArgumentException(&quot;Cow Price cannot be less than 0.01&quot;);</span>
+<span class="fc bfc" id="L280" title="All 2 branches covered.">        if (params.getCowPrice() &lt; 0.01) {</span>
+<span class="fc" id="L281">            throw new IllegalArgumentException(&quot;Cow Price cannot be less than 0.01&quot;);</span>
         }
 
-<span class="fc bfc" id="L272" title="All 2 branches covered.">        if (params.getMilkPrice() &lt; 0.01) {</span>
-<span class="fc" id="L273">            throw new IllegalArgumentException(&quot;Milk Price cannot be less than 0.01&quot;);</span>
+<span class="fc bfc" id="L284" title="All 4 branches covered.">        if (!Double.isFinite(params.getPurchaseFee()) || params.getPurchaseFee() &lt; 0) {</span>
+<span class="fc" id="L285">            throw new IllegalArgumentException(&quot;Purchase Fee must be a non-negative finite number&quot;);</span>
         }
 
-<span class="fc bfc" id="L276" title="All 2 branches covered.">        if (params.getStartingBalance() &lt; 0) {</span>
-<span class="fc" id="L277">            throw new IllegalArgumentException(&quot;Starting Balance cannot be negative&quot;);</span>
+<span class="fc bfc" id="L288" title="All 4 branches covered.">        if (!Double.isFinite(params.getSellingFee()) || params.getSellingFee() &lt; 0) {</span>
+<span class="fc" id="L289">            throw new IllegalArgumentException(&quot;Selling Fee must be a non-negative finite number&quot;);</span>
+        }
+
+<span class="fc bfc" id="L292" title="All 2 branches covered.">        if (params.getMilkPrice() &lt; 0.01) {</span>
+<span class="fc" id="L293">            throw new IllegalArgumentException(&quot;Milk Price cannot be less than 0.01&quot;);</span>
+        }
+
+<span class="fc bfc" id="L296" title="All 2 branches covered.">        if (params.getStartingBalance() &lt; 0) {</span>
+<span class="fc" id="L297">            throw new IllegalArgumentException(&quot;Starting Balance cannot be negative&quot;);</span>
         }
 
         // throw exception for degradation rate
-<span class="fc bfc" id="L281" title="All 2 branches covered.">        if (params.getDegradationRate() &lt; 0) {</span>
-<span class="fc" id="L282">            throw new IllegalArgumentException(&quot;Degradation Rate cannot be negative&quot;);</span>
+<span class="fc bfc" id="L301" title="All 2 branches covered.">        if (params.getDegradationRate() &lt; 0) {</span>
+<span class="fc" id="L302">            throw new IllegalArgumentException(&quot;Degradation Rate cannot be negative&quot;);</span>
         }
 
-<span class="fc bfc" id="L285" title="All 2 branches covered.">        if (params.getCarryingCapacity() &lt; 1) {</span>
-<span class="fc" id="L286">            throw new IllegalArgumentException(&quot;Carrying Capacity cannot be less than 1&quot;);</span>
+<span class="fc bfc" id="L305" title="All 2 branches covered.">        if (params.getCarryingCapacity() &lt; 1) {</span>
+<span class="fc" id="L306">            throw new IllegalArgumentException(&quot;Carrying Capacity cannot be less than 1&quot;);</span>
         }
 
-<span class="fc" id="L289">        validateDates(params);</span>
+<span class="fc" id="L309">        validateDates(params);</span>
 
-<span class="fc" id="L291">        Game saved = gameRepository.save(game);</span>
-<span class="fc" id="L292">        String body = mapper.writeValueAsString(saved);</span>
+<span class="fc" id="L311">        Game saved = gameRepository.save(game);</span>
+<span class="fc" id="L312">        String body = mapper.writeValueAsString(saved);</span>
 
-<span class="fc" id="L294">        return ResponseEntity.ok().body(body);</span>
+<span class="fc" id="L314">        return ResponseEntity.ok().body(body);</span>
     }
 
     /**
@@ -302,34 +322,34 @@ import java.util.stream.StreamSupport;
      * @param params the params to validate
      */
     public static void validateDates(CreateGameParams params) {
-<span class="fc bfc" id="L305" title="All 2 branches covered.">        if (params.getStartingDate() == null) {</span>
-<span class="fc" id="L306">            throw new IllegalArgumentException(&quot;Starting Date is required&quot;);</span>
+<span class="fc bfc" id="L325" title="All 2 branches covered.">        if (params.getStartingDate() == null) {</span>
+<span class="fc" id="L326">            throw new IllegalArgumentException(&quot;Starting Date is required&quot;);</span>
         }
-<span class="fc bfc" id="L308" title="All 2 branches covered.">        if (params.getLastDate() == null) {</span>
-<span class="fc" id="L309">            throw new IllegalArgumentException(&quot;Last Date is required&quot;);</span>
+<span class="fc bfc" id="L328" title="All 2 branches covered.">        if (params.getLastDate() == null) {</span>
+<span class="fc" id="L329">            throw new IllegalArgumentException(&quot;Last Date is required&quot;);</span>
         }
-<span class="fc bfc" id="L311" title="All 2 branches covered.">        if (!params.getLastDate().isAfter(params.getStartingDate())) {</span>
-<span class="fc" id="L312">            throw new IllegalArgumentException(&quot;Last Date must be after Starting Date&quot;);</span>
+<span class="fc bfc" id="L331" title="All 2 branches covered.">        if (!params.getLastDate().isAfter(params.getStartingDate())) {</span>
+<span class="fc" id="L332">            throw new IllegalArgumentException(&quot;Last Date must be after Starting Date&quot;);</span>
         }
-<span class="fc" id="L314">    }</span>
+<span class="fc" id="L334">    }</span>
 
 
     @Operation(summary = &quot;List all cow health update strategies&quot;)
     @PreAuthorize(&quot;hasRole('ROLE_USER')&quot;)
     @GetMapping(&quot;/all-health-update-strategies&quot;)
     public ResponseEntity&lt;String&gt; listCowHealthUpdateStrategies() throws JsonProcessingException {
-<span class="fc" id="L321">        var result = HealthUpdateStrategyList.create();</span>
-<span class="fc" id="L322">        String body = mapper.writeValueAsString(result);</span>
-<span class="fc" id="L323">        return ResponseEntity.ok().body(body);</span>
+<span class="fc" id="L341">        var result = HealthUpdateStrategyList.create();</span>
+<span class="fc" id="L342">        String body = mapper.writeValueAsString(result);</span>
+<span class="fc" id="L343">        return ResponseEntity.ok().body(body);</span>
     }
 
     @Operation(summary = &quot;Get the ids of the courses the current user belongs to as a student or staff member&quot;)
     @PreAuthorize(&quot;hasRole('ROLE_USER')&quot;)
     @GetMapping(&quot;/mycourses&quot;)
     public ResponseEntity&lt;List&lt;Long&gt;&gt; getMyCourseIds() {
-<span class="fc" id="L330">        User u = getCurrentUser().getUser();</span>
-<span class="fc" id="L331">        List&lt;Long&gt; courseIds = courseAccessService.getCourseIdsForUser(u);</span>
-<span class="fc" id="L332">        return ResponseEntity.ok().body(courseIds);</span>
+<span class="fc" id="L350">        User u = getCurrentUser().getUser();</span>
+<span class="fc" id="L351">        List&lt;Long&gt; courseIds = courseAccessService.getCourseIdsForUser(u);</span>
+<span class="fc" id="L352">        return ResponseEntity.ok().body(courseIds);</span>
     }
 
     @Operation(summary = &quot;Join a game&quot;)
@@ -338,45 +358,45 @@ import java.util.stream.StreamSupport;
     public ResponseEntity&lt;String&gt; joinCommon(
             @Parameter(name=&quot;gameId&quot;) @RequestParam Long gameId) throws Exception {
 
-<span class="fc" id="L341">        User u = getCurrentUser().getUser();</span>
-<span class="fc" id="L342">        Long userId = u.getId();</span>
-<span class="fc" id="L343">        String username = u.getFullName();</span>
+<span class="fc" id="L361">        User u = getCurrentUser().getUser();</span>
+<span class="fc" id="L362">        Long userId = u.getId();</span>
+<span class="fc" id="L363">        String username = u.getFullName();</span>
 
-<span class="fc" id="L345">        Game joinedGame = gameRepository.findById(gameId)</span>
-<span class="fc" id="L346">                .orElseThrow(() -&gt; new EntityNotFoundException(&quot;Game&quot;, gameId));</span>
+<span class="fc" id="L365">        Game joinedGame = gameRepository.findById(gameId)</span>
+<span class="fc" id="L366">                .orElseThrow(() -&gt; new EntityNotFoundException(&quot;Game&quot;, gameId));</span>
         
-<span class="fc bfc" id="L348" title="All 2 branches covered.">        if (joinedGame.isHidden()) {</span>
-<span class="fc" id="L349">            throw new CommonsHIddenException(gameId);</span>
+<span class="fc bfc" id="L368" title="All 2 branches covered.">        if (joinedGame.isHidden()) {</span>
+<span class="fc" id="L369">            throw new CommonsHIddenException(gameId);</span>
         }
 
-<span class="fc bfc" id="L352" title="All 4 branches covered.">        if (joinedGame.getCourseId() != null &amp;&amp; !courseAccessService.isEligibleForGame(u, joinedGame)) {</span>
-<span class="fc" id="L353">            throw new CourseAccessDeniedException(gameId);</span>
+<span class="fc bfc" id="L372" title="All 4 branches covered.">        if (joinedGame.getCourseId() != null &amp;&amp; !courseAccessService.isEligibleForGame(u, joinedGame)) {</span>
+<span class="fc" id="L373">            throw new CourseAccessDeniedException(gameId);</span>
         }
 
-<span class="fc" id="L356">        Optional&lt;Farmer&gt; farmerLookup = farmerRepository.findByGameIdAndUserId(gameId, userId);</span>
+<span class="fc" id="L376">        Optional&lt;Farmer&gt; farmerLookup = farmerRepository.findByGameIdAndUserId(gameId, userId);</span>
 
-<span class="fc bfc" id="L358" title="All 2 branches covered.">        if (farmerLookup.isPresent()) {</span>
+<span class="fc bfc" id="L378" title="All 2 branches covered.">        if (farmerLookup.isPresent()) {</span>
             // user is already a member of this game
-<span class="fc" id="L360">            String body = mapper.writeValueAsString(joinedGame);</span>
-<span class="fc" id="L361">            return ResponseEntity.ok().body(body);</span>
+<span class="fc" id="L380">            String body = mapper.writeValueAsString(joinedGame);</span>
+<span class="fc" id="L381">            return ResponseEntity.ok().body(body);</span>
         }
 
-<span class="fc" id="L364">        Farmer uc = Farmer.builder()</span>
-<span class="fc" id="L365">                .user(u)</span>
-<span class="fc" id="L366">                .game(joinedGame)</span>
-<span class="fc" id="L367">                .username(username)</span>
-<span class="fc" id="L368">                .totalWealth(joinedGame.getStartingBalance())</span>
-<span class="fc" id="L369">                .numOfCows(0)</span>
-<span class="fc" id="L370">                .cowHealth(100)</span>
-<span class="fc" id="L371">                .cowsBought(0)</span>
-<span class="fc" id="L372">                .cowsSold(0)</span>
-<span class="fc" id="L373">                .cowDeaths(0)</span>
-<span class="fc" id="L374">                .build();</span>
+<span class="fc" id="L384">        Farmer uc = Farmer.builder()</span>
+<span class="fc" id="L385">                .user(u)</span>
+<span class="fc" id="L386">                .game(joinedGame)</span>
+<span class="fc" id="L387">                .username(username)</span>
+<span class="fc" id="L388">                .totalWealth(joinedGame.getStartingBalance())</span>
+<span class="fc" id="L389">                .numOfCows(0)</span>
+<span class="fc" id="L390">                .cowHealth(100)</span>
+<span class="fc" id="L391">                .cowsBought(0)</span>
+<span class="fc" id="L392">                .cowsSold(0)</span>
+<span class="fc" id="L393">                .cowDeaths(0)</span>
+<span class="fc" id="L394">                .build();</span>
 
-<span class="fc" id="L376">        farmerRepository.save(uc);</span>
+<span class="fc" id="L396">        farmerRepository.save(uc);</span>
 
-<span class="fc" id="L378">        String body = mapper.writeValueAsString(joinedGame);</span>
-<span class="fc" id="L379">        return ResponseEntity.ok().body(body);</span>
+<span class="fc" id="L398">        String body = mapper.writeValueAsString(joinedGame);</span>
+<span class="fc" id="L399">        return ResponseEntity.ok().body(body);</span>
     }
 
     @Operation(summary = &quot;Delete a Game&quot;)
@@ -385,19 +405,19 @@ import java.util.stream.StreamSupport;
     public Object deleteGame(
             @Parameter(name=&quot;id&quot;) @RequestParam Long id) {
         
-<span class="fc" id="L388">        Iterable&lt;Farmer&gt; farmer = farmerRepository.findByGameId(id);</span>
+<span class="fc" id="L408">        Iterable&lt;Farmer&gt; farmer = farmerRepository.findByGameId(id);</span>
 
-<span class="fc bfc" id="L390" title="All 2 branches covered.">        for (Farmer game : farmer) {</span>
-<span class="fc" id="L391">            farmerRepository.delete(game);</span>
-<span class="fc" id="L392">        }</span>
+<span class="fc bfc" id="L410" title="All 2 branches covered.">        for (Farmer game : farmer) {</span>
+<span class="fc" id="L411">            farmerRepository.delete(game);</span>
+<span class="fc" id="L412">        }</span>
 
-<span class="fc" id="L394">        gameRepository.findById(id)</span>
-<span class="fc" id="L395">                .orElseThrow(() -&gt; new EntityNotFoundException(&quot;Game&quot;, id));</span>
+<span class="fc" id="L414">        gameRepository.findById(id)</span>
+<span class="fc" id="L415">                .orElseThrow(() -&gt; new EntityNotFoundException(&quot;Game&quot;, id));</span>
 
-<span class="fc" id="L397">        gameRepository.deleteById(id);</span>
+<span class="fc" id="L417">        gameRepository.deleteById(id);</span>
 
-<span class="fc" id="L399">        String responseString = String.format(&quot;game with id %d deleted&quot;, id);</span>
-<span class="fc" id="L400">        return genericMessage(responseString);</span>
+<span class="fc" id="L419">        String responseString = String.format(&quot;game with id %d deleted&quot;, id);</span>
+<span class="fc" id="L420">        return genericMessage(responseString);</span>
 
     }
 
@@ -407,16 +427,16 @@ import java.util.stream.StreamSupport;
     public Object deleteUserFromCommon(@PathVariable(&quot;gameId&quot;) Long gameId,
                                        @PathVariable(&quot;userId&quot;) Long userId) throws Exception {
 
-<span class="fc" id="L410">        Farmer farmer = farmerRepository.findByGameIdAndUserId(gameId, userId)</span>
-<span class="fc" id="L411">                .orElseThrow(() -&gt; new EntityNotFoundException(</span>
+<span class="fc" id="L430">        Farmer farmer = farmerRepository.findByGameIdAndUserId(gameId, userId)</span>
+<span class="fc" id="L431">                .orElseThrow(() -&gt; new EntityNotFoundException(</span>
                         Farmer.class, &quot;gameId&quot;, gameId, &quot;userId&quot;, userId)
                 );
 
-<span class="fc" id="L415">        farmerRepository.delete(farmer);</span>
+<span class="fc" id="L435">        farmerRepository.delete(farmer);</span>
 
-<span class="fc" id="L417">        String responseString = String.format(&quot;user with id %d deleted from game with id %d, %d users remain&quot;, userId, gameId, gameRepository.getNumUsers(gameId).orElse(0));</span>
+<span class="fc" id="L437">        String responseString = String.format(&quot;user with id %d deleted from game with id %d, %d users remain&quot;, userId, gameId, gameRepository.getNumUsers(gameId).orElse(0));</span>
 
-<span class="fc" id="L419">        return genericMessage(responseString);</span>
+<span class="fc" id="L439">        return genericMessage(responseString);</span>
     }
 
     @Operation(summary = &quot;Update the dashboard visibility settings for a game (admin only)&quot;)
@@ -426,23 +446,23 @@ import java.util.stream.StreamSupport;
             @Parameter(name=&quot;id&quot;) @RequestParam long id,
             @Parameter(name=&quot;request body&quot;) @RequestBody DashboardSettingsParams params
     ) {
-<span class="fc" id="L429">        Game game = gameRepository.findById(id)</span>
-<span class="fc" id="L430">                .orElseThrow(() -&gt; new EntityNotFoundException(&quot;Game&quot;, id));</span>
+<span class="fc" id="L449">        Game game = gameRepository.findById(id)</span>
+<span class="fc" id="L450">                .orElseThrow(() -&gt; new EntityNotFoundException(&quot;Game&quot;, id));</span>
 
-<span class="fc" id="L432">        game.setShowLeaderboard(params.isShowLeaderboard());</span>
-<span class="fc" id="L433">        game.setShowOverviewSection(params.isShowOverviewSection());</span>
-<span class="fc" id="L434">        game.setShowCowsPerFarmerSection(params.isShowCowsPerFarmerSection());</span>
-<span class="fc" id="L435">        game.setShowCapacitySection(params.isShowCapacitySection());</span>
-<span class="fc" id="L436">        game.setShowHistogramSection(params.isShowHistogramSection());</span>
-<span class="fc" id="L437">        game.setShowTrendsSection(params.isShowTrendsSection());</span>
-<span class="fc" id="L438">        game.setShowHealthSection(params.isShowHealthSection());</span>
-<span class="fc" id="L439">        game.setShowTotalCowsSection(params.isShowTotalCowsSection());</span>
-<span class="fc" id="L440">        game.setShowCapacityOverTimeSection(params.isShowCapacityOverTimeSection());</span>
-<span class="fc" id="L441">        game.setShowFarmerLeaderboardSection(params.isShowFarmerLeaderboardSection());</span>
+<span class="fc" id="L452">        game.setShowLeaderboard(params.isShowLeaderboard());</span>
+<span class="fc" id="L453">        game.setShowOverviewSection(params.isShowOverviewSection());</span>
+<span class="fc" id="L454">        game.setShowCowsPerFarmerSection(params.isShowCowsPerFarmerSection());</span>
+<span class="fc" id="L455">        game.setShowCapacitySection(params.isShowCapacitySection());</span>
+<span class="fc" id="L456">        game.setShowHistogramSection(params.isShowHistogramSection());</span>
+<span class="fc" id="L457">        game.setShowTrendsSection(params.isShowTrendsSection());</span>
+<span class="fc" id="L458">        game.setShowHealthSection(params.isShowHealthSection());</span>
+<span class="fc" id="L459">        game.setShowTotalCowsSection(params.isShowTotalCowsSection());</span>
+<span class="fc" id="L460">        game.setShowCapacityOverTimeSection(params.isShowCapacityOverTimeSection());</span>
+<span class="fc" id="L461">        game.setShowFarmerLeaderboardSection(params.isShowFarmerLeaderboardSection());</span>
 
-<span class="fc" id="L443">        Game saved = gameRepository.save(game);</span>
+<span class="fc" id="L463">        Game saved = gameRepository.save(game);</span>
 
-<span class="fc" id="L445">        return ResponseEntity.ok().body(saved);</span>
+<span class="fc" id="L465">        return ResponseEntity.ok().body(saved);</span>
     }
 
     @Operation(summary = &quot;Get the number of cows for each farmer in a game&quot;)
@@ -450,11 +470,11 @@ import java.util.stream.StreamSupport;
     @GetMapping(&quot;/numcows&quot;)
     public ResponseEntity&lt;List&lt;Integer&gt;&gt; getNumCowsForGameId(
             @Parameter(name=&quot;gameId&quot;) @RequestParam Long gameId) {
-<span class="fc" id="L453">        Iterable&lt;Farmer&gt; farmerList = farmerRepository.findByGameId(gameId);</span>
-<span class="fc" id="L454">        List&lt;Integer&gt; numCowsList = StreamSupport.stream(farmerList.spliterator(), false)</span>
-<span class="fc" id="L455">                .map(Farmer::getNumOfCows)</span>
-<span class="fc" id="L456">                .collect(Collectors.toList());</span>
-<span class="fc" id="L457">        return ResponseEntity.ok().body(numCowsList);</span>
+<span class="fc" id="L473">        Iterable&lt;Farmer&gt; farmerList = farmerRepository.findByGameId(gameId);</span>
+<span class="fc" id="L474">        List&lt;Integer&gt; numCowsList = StreamSupport.stream(farmerList.spliterator(), false)</span>
+<span class="fc" id="L475">                .map(Farmer::getNumOfCows)</span>
+<span class="fc" id="L476">                .collect(Collectors.toList());</span>
+<span class="fc" id="L477">        return ResponseEntity.ok().body(numCowsList);</span>
     }
 
     @Operation(summary = &quot;Get timeseries stats for a game&quot;)
@@ -462,45 +482,45 @@ import java.util.stream.StreamSupport;
     @GetMapping(&quot;/timeseries&quot;)
     public ResponseEntity&lt;List&lt;Map&lt;String, Object&gt;&gt;&gt; getGameTimeSeries(
             @Parameter(name=&quot;commonId&quot;) @RequestParam Long commonId) {
-<span class="fc" id="L465">        Iterable&lt;GameStats&gt; gameStats = gameStatsRepository.findAllByGameId(commonId);</span>
-<span class="fc" id="L466">        List&lt;GameStats&gt; sortedStats = StreamSupport.stream(gameStats.spliterator(), false)</span>
-<span class="fc" id="L467">                .sorted(Comparator.comparing(GameStats::getCreateDate))</span>
-<span class="fc" id="L468">                .collect(Collectors.toList());</span>
+<span class="fc" id="L485">        Iterable&lt;GameStats&gt; gameStats = gameStatsRepository.findAllByGameId(commonId);</span>
+<span class="fc" id="L486">        List&lt;GameStats&gt; sortedStats = StreamSupport.stream(gameStats.spliterator(), false)</span>
+<span class="fc" id="L487">                .sorted(Comparator.comparing(GameStats::getCreateDate))</span>
+<span class="fc" id="L488">                .collect(Collectors.toList());</span>
 
-<span class="fc" id="L470">        List&lt;Map&lt;String, Object&gt;&gt; healthValues = sortedStats.stream()</span>
-<span class="fc" id="L471">                .map(stat -&gt; Map.&lt;String, Object&gt;of(</span>
-<span class="fc" id="L472">                        &quot;date&quot;, stat.getCreateDate().toString(),</span>
-<span class="fc" id="L473">                        &quot;value&quot;, stat.getAvgHealth()))</span>
-<span class="fc" id="L474">                .collect(Collectors.toList());</span>
+<span class="fc" id="L490">        List&lt;Map&lt;String, Object&gt;&gt; healthValues = sortedStats.stream()</span>
+<span class="fc" id="L491">                .map(stat -&gt; Map.&lt;String, Object&gt;of(</span>
+<span class="fc" id="L492">                        &quot;date&quot;, stat.getCreateDate().toString(),</span>
+<span class="fc" id="L493">                        &quot;value&quot;, stat.getAvgHealth()))</span>
+<span class="fc" id="L494">                .collect(Collectors.toList());</span>
 
-<span class="fc" id="L476">        List&lt;Map&lt;String, Object&gt;&gt; totalCowsValues = sortedStats.stream()</span>
-<span class="fc" id="L477">                .map(stat -&gt; Map.&lt;String, Object&gt;of(</span>
-<span class="fc" id="L478">                        &quot;date&quot;, stat.getCreateDate().toString(),</span>
-<span class="fc" id="L479">                        &quot;value&quot;, stat.getNumCows()))</span>
-<span class="fc" id="L480">                .collect(Collectors.toList());</span>
+<span class="fc" id="L496">        List&lt;Map&lt;String, Object&gt;&gt; totalCowsValues = sortedStats.stream()</span>
+<span class="fc" id="L497">                .map(stat -&gt; Map.&lt;String, Object&gt;of(</span>
+<span class="fc" id="L498">                        &quot;date&quot;, stat.getCreateDate().toString(),</span>
+<span class="fc" id="L499">                        &quot;value&quot;, stat.getNumCows()))</span>
+<span class="fc" id="L500">                .collect(Collectors.toList());</span>
 
-<span class="fc" id="L482">        List&lt;Map&lt;String, Object&gt;&gt; effectiveCapacityValues = sortedStats.stream()</span>
-<span class="fc" id="L483">                .map(stat -&gt; Map.&lt;String, Object&gt;of(</span>
-<span class="fc" id="L484">                        &quot;date&quot;, stat.getCreateDate().toString(),</span>
-<span class="fc" id="L485">                        &quot;value&quot;, stat.getEffectiveCapacity()))</span>
-<span class="fc" id="L486">                .collect(Collectors.toList());</span>
+<span class="fc" id="L502">        List&lt;Map&lt;String, Object&gt;&gt; effectiveCapacityValues = sortedStats.stream()</span>
+<span class="fc" id="L503">                .map(stat -&gt; Map.&lt;String, Object&gt;of(</span>
+<span class="fc" id="L504">                        &quot;date&quot;, stat.getCreateDate().toString(),</span>
+<span class="fc" id="L505">                        &quot;value&quot;, stat.getEffectiveCapacity()))</span>
+<span class="fc" id="L506">                .collect(Collectors.toList());</span>
 
-<span class="fc" id="L488">        List&lt;Map&lt;String, Object&gt;&gt; timeSeries = List.of(</span>
-<span class="fc" id="L489">                Map.of(</span>
+<span class="fc" id="L508">        List&lt;Map&lt;String, Object&gt;&gt; timeSeries = List.of(</span>
+<span class="fc" id="L509">                Map.of(</span>
                         &quot;name&quot;, &quot;Health&quot;,
                         &quot;color&quot;, &quot;#0088FE&quot;,
-<span class="fc" id="L492">                        &quot;percentage&quot;, true,</span>
+<span class="fc" id="L512">                        &quot;percentage&quot;, true,</span>
                         &quot;values&quot;, healthValues),
-<span class="fc" id="L494">                Map.of(</span>
+<span class="fc" id="L514">                Map.of(</span>
                         &quot;name&quot;, &quot;Total Cows&quot;,
                         &quot;color&quot;, &quot;#FF8042&quot;,
                         &quot;values&quot;, totalCowsValues),
-<span class="fc" id="L498">                Map.of(</span>
+<span class="fc" id="L518">                Map.of(</span>
                         &quot;name&quot;, &quot;Effective Capacity&quot;,
                         &quot;color&quot;, &quot;#00C49F&quot;,
                         &quot;values&quot;, effectiveCapacityValues));
 
-<span class="fc" id="L503">        return ResponseEntity.ok().body(timeSeries);</span>
+<span class="fc" id="L523">        return ResponseEntity.ok().body(timeSeries);</span>
     }
 
     

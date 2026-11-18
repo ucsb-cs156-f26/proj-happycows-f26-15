@@ -10,7 +10,10 @@ import static org.mockito.ArgumentMatchers.any;
 
 import edu.ucsb.cs156.happiercows.repositories.UserRepository;
 import edu.ucsb.cs156.happiercows.testconfig.TestConfig;
+import edu.ucsb.cs156.happiercows.entities.User;
+import java.time.Instant;
 import java.util.Arrays;
+import java.util.Map;
 import java.util.Optional;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -336,6 +339,78 @@ public class ChatMessageControllerTests extends ControllerTestCase {
         String expectedResponseString = mapper.writeValueAsString(chatMessage);
         log.info("Got back from API: {}",responseString);
         assertEquals(expectedResponseString, responseString);
+    }
+
+    @WithMockUser(roles = {"USER"})
+    @Test
+    public void userOnCooldownCannotPostChatMessages() throws Exception {
+        Long gameId = 1L;
+        Long userId = 1L;
+        String content = "Hello world!";
+
+        Farmer farmer = Farmer.builder()
+                .game(Game.builder().showChat(true).build())
+                .build();
+        when(farmerRepository.findByGameIdAndUserId(gameId, userId)).thenReturn(Optional.of(farmer));
+
+        User user = User.builder().id(userId).chatCooldownUntil(Instant.now().plusSeconds(60)).build();
+        when(userRepository.findById(userId)).thenReturn(Optional.of(user));
+
+        MvcResult response = mockMvc.perform(post("/api/chat/post?gameId={gameId}&content={content}", gameId, content).with(csrf()))
+            .andExpect(status().isTooManyRequests()).andReturn();
+
+        verify(chatMessageRepository, times(0)).save(any(ChatMessage.class));
+        Map<String, Object> json = responseToJson(response);
+        assertEquals("You are on chat cooldown for 60 more seconds", json.get("message"));
+        assertEquals(60, ((Number) json.get("remainingSeconds")).intValue());
+    }
+
+    @WithMockUser(roles = {"USER"})
+    @Test
+    public void userWithExpiredCooldownCanPostChatMessages() throws Exception {
+        Long gameId = 1L;
+        Long userId = 1L;
+        String content = "Hello world!";
+
+        ChatMessage chatMessage = ChatMessage.builder().id(0L).gameId(gameId).userId(userId).message(content).build();
+        when(chatMessageRepository.save(any(ChatMessage.class))).thenReturn(chatMessage);
+
+        Farmer farmer = Farmer.builder()
+                .game(Game.builder().showChat(true).build())
+                .build();
+        when(farmerRepository.findByGameIdAndUserId(gameId, userId)).thenReturn(Optional.of(farmer));
+
+        User user = User.builder().id(userId).chatCooldownUntil(Instant.now().minusSeconds(10)).build();
+        when(userRepository.findById(userId)).thenReturn(Optional.of(user));
+
+        mockMvc.perform(post("/api/chat/post?gameId={gameId}&content={content}", gameId, content).with(csrf()))
+            .andExpect(status().isOk());
+
+        verify(chatMessageRepository, times(1)).save(any(ChatMessage.class));
+    }
+
+    @WithMockUser(roles = {"USER"})
+    @Test
+    public void userWithNoCooldownCanPostChatMessages() throws Exception {
+        Long gameId = 1L;
+        Long userId = 1L;
+        String content = "Hello world!";
+
+        ChatMessage chatMessage = ChatMessage.builder().id(0L).gameId(gameId).userId(userId).message(content).build();
+        when(chatMessageRepository.save(any(ChatMessage.class))).thenReturn(chatMessage);
+
+        Farmer farmer = Farmer.builder()
+                .game(Game.builder().showChat(true).build())
+                .build();
+        when(farmerRepository.findByGameIdAndUserId(gameId, userId)).thenReturn(Optional.of(farmer));
+
+        User user = User.builder().id(userId).build();
+        when(userRepository.findById(userId)).thenReturn(Optional.of(user));
+
+        mockMvc.perform(post("/api/chat/post?gameId={gameId}&content={content}", gameId, content).with(csrf()))
+            .andExpect(status().isOk());
+
+        verify(chatMessageRepository, times(1)).save(any(ChatMessage.class));
     }
 
     //* */ hide tests

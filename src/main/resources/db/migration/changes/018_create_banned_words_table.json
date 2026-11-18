@@ -1,0 +1,56 @@
+{
+  "databaseChangeLog": [
+    {
+      "changeSet": {
+        "id": "018-BANNED-WORDS",
+        "author": "HaasiniY",
+        "preConditions": [
+          {
+            "onFail": "MARK_RAN"
+          },
+          {
+            "not": [
+              {
+                "tableExists": {
+                  "tableName": "BANNED_WORDS"
+                }
+              }
+            ]
+          }
+        ],
+        "changes": [
+          {
+            "createTable": {
+              "columns": [
+                {
+                  "column": {
+                    "autoIncrement": true,
+                    "constraints": {
+                      "nullable": false,
+                      "primaryKey": true,
+                      "primaryKeyName": "BANNED_WORDS_PK"
+                    },
+                    "name": "ID",
+                    "type": "BIGINT"
+                  }
+                },
+                {
+                  "column": {
+                    "constraints": {
+                      "nullable": false,
+                      "unique": true,
+                      "uniqueConstraintName": "BANNED_WORDS_WORD_UNIQUE"
+                    },
+                    "name": "WORD",
+                    "type": "VARCHAR(255)"
+                  }
+                }
+              ],
+              "tableName": "BANNED_WORDS"
+            }
+          }
+        ]
+      }
+    }
+  ]
+}

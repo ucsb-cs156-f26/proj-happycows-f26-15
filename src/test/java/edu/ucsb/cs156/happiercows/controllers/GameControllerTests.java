@@ -949,6 +949,7 @@ public class GameControllerTests extends ControllerTestCase {
 
     }
 
+    
     @WithMockUser(roles = {"USER"})
     @Test
     public void joinGameTest() throws Exception {
@@ -967,26 +968,58 @@ public class GameControllerTests extends ControllerTestCase {
                 .cowHealth(100)
                 .build();
 
-        
-
-        
-        when(farmerRepository.findByGameIdAndUserId(anyLong(), anyLong())).thenReturn(Optional.empty());
+        when(farmerRepository.findByGameIdAndUserId(anyLong(), anyLong()))
+                .thenReturn(Optional.empty());
         when(farmerRepository.save(eq(uc))).thenReturn(uc);
         when(gameRepository.findById(eq(2L))).thenReturn(Optional.of(c));
 
         MvcResult response = mockMvc
                 .perform(post("/api/game/join?gameId=2").with(csrf()))
-                .andExpect(status().isOk()).andReturn();
+                .andExpect(status().isOk())
+                .andReturn();
 
-        verify(farmerRepository, times(1)).findByGameIdAndUserId(2L, 1L);
+        verify(farmerRepository, times(1))
+                .findByGameIdAndUserId(2L, 1L);
         verify(farmerRepository, times(1)).save(uc);
 
-        
         String responseString = response.getResponse().getContentAsString();
         String cAsJson = mapper.writeValueAsString(c);
 
         assertEquals(responseString, cAsJson);
     }
+
+    @WithMockUser(roles = {"USER"})
+    @Test
+    public void join_hidden_common_test() throws Exception {
+
+        Game hiddenGame = Game.builder()
+                .id(2L)
+                .name("Hidden Game")
+                .hidden(true)
+                .build();
+
+        when(gameRepository.findById(eq(2L)))
+                .thenReturn(Optional.of(hiddenGame));
+
+        MvcResult response = mockMvc
+                .perform(post("/api/game/join?gameId=2").with(csrf()))
+                .andExpect(status().isBadRequest())
+                .andReturn();
+
+        verify(gameRepository, times(1)).findById(eq(2L));
+
+        // Hidden games must not create farmer memberships.
+        verify(farmerRepository, times(0)).save(any());
+
+        // The API must return the appropriate exception.
+        Map<String, Object> responseMap = responseToJson(response);
+
+        assertEquals("CommonsHIddenException", responseMap.get("type"));
+        assertEquals(
+                "Commons with id 2 is hidden",
+                responseMap.get("message"));
+    }
+
 
     @WithMockUser(roles = {"USER"})
     @Test
@@ -2110,5 +2143,159 @@ public class GameControllerTests extends ControllerTestCase {
                 .andExpect(status().isBadRequest());
 
         verify(gameRepository, times(0)).save(any());
+    }
+
+
+    @WithMockUser(roles = {"ADMIN"})
+    @Test
+    public void createGameTest_withPurchaseAndSellingFees() throws Exception {
+        CreateGameParams params = CreateGameParams.builder()
+                .name("Game With Fees")
+                .cowPrice(100.0)
+                .purchaseFee(1.0)
+                .sellingFee(2.0)
+                .milkPrice(5.0)
+                .startingBalance(1000.0)
+                .startingDate(LocalDateTime.parse("2026-11-12T00:00:00"))
+                .lastDate(LocalDateTime.parse("2027-03-12T00:00:00"))
+                .degradationRate(0.01)
+                .capacityPerUser(10)
+                .carryingCapacity(100)
+                .build();
+
+        when(gameRepository.save(any(Game.class)))
+                .thenAnswer(invocation -> invocation.getArgument(0));
+
+        MvcResult response = mockMvc.perform(
+                post("/api/game/new")
+                        .with(csrf())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(params)))
+                .andExpect(status().isOk())
+                .andReturn();
+
+        Game savedGame = objectMapper.readValue(
+                response.getResponse().getContentAsString(), Game.class);
+
+        assertEquals(1.0, savedGame.getPurchaseFee());
+        assertEquals(2.0, savedGame.getSellingFee());
+
+        ArgumentCaptor<Game> captor = ArgumentCaptor.forClass(Game.class);
+        verify(gameRepository).save(captor.capture());
+        assertEquals(1.0, captor.getValue().getPurchaseFee());
+        assertEquals(2.0, captor.getValue().getSellingFee());
+    }
+
+    @WithMockUser(roles = {"ADMIN"})
+    @Test
+    public void updateGameTest_withPurchaseAndSellingFees() throws Exception {
+        Game existingGame = Game.builder()
+                .id(1L)
+                .name("Game Before Fees")
+                .cowPrice(100.0)
+                .purchaseFee(0.0)
+                .sellingFee(0.0)
+                .build();
+
+        when(gameRepository.findById(1L))
+                .thenReturn(Optional.of(existingGame));
+
+        CreateGameParams params = CreateGameParams.builder()
+                .name("Game With Updated Fees")
+                .cowPrice(100.0)
+                .purchaseFee(1.5)
+                .sellingFee(2.5)
+                .milkPrice(5.0)
+                .startingBalance(1000.0)
+                .startingDate(LocalDateTime.parse("2026-11-12T00:00:00"))
+                .lastDate(LocalDateTime.parse("2027-03-12T00:00:00"))
+                .degradationRate(0.01)
+                .capacityPerUser(10)
+                .carryingCapacity(100)
+                .build();
+
+        mockMvc.perform(
+                put("/api/game/update?id=1")
+                        .with(csrf())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(params)))
+                .andExpect(status().isNoContent());
+
+        ArgumentCaptor<Game> captor = ArgumentCaptor.forClass(Game.class);
+        verify(gameRepository).save(captor.capture());
+
+        assertEquals(1.5, captor.getValue().getPurchaseFee());
+        assertEquals(2.5, captor.getValue().getSellingFee());
+    }
+
+        @WithMockUser(roles = {"ADMIN"})
+    @Test
+    public void createGameTest_rejectsInvalidFees() throws Exception {
+        double[] invalidFees = {-1.0, Double.NaN};
+
+        for (double invalidFee : invalidFees) {
+            for (boolean invalidPurchaseFee : new boolean[]{true, false}) {
+                CreateGameParams params = CreateGameParams.builder()
+                        .name("Invalid Fee Game")
+                        .cowPrice(100.0)
+                        .purchaseFee(invalidPurchaseFee ? invalidFee : 1.0)
+                        .sellingFee(invalidPurchaseFee ? 1.0 : invalidFee)
+                        .milkPrice(5.0)
+                        .startingBalance(1000.0)
+                        .startingDate(LocalDateTime.parse("2026-11-12T00:00:00"))
+                        .lastDate(LocalDateTime.parse("2027-03-12T00:00:00"))
+                        .degradationRate(0.01)
+                        .capacityPerUser(10)
+                        .carryingCapacity(100)
+                        .build();
+
+                mockMvc.perform(
+                        post("/api/game/new")
+                                .with(csrf())
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(objectMapper.writeValueAsString(params)))
+                        .andExpect(status().isBadRequest());
+            }
+        }
+    }
+
+    @WithMockUser(roles = {"ADMIN"})
+    @Test
+    public void updateGameTest_rejectsInvalidFees() throws Exception {
+        Game existingGame = Game.builder()
+                .id(1L)
+                .name("Existing Game")
+                .cowPrice(100.0)
+                .build();
+
+        when(gameRepository.findById(1L))
+                .thenReturn(Optional.of(existingGame));
+
+        double[] invalidFees = {-1.0, Double.NaN};
+
+        for (double invalidFee : invalidFees) {
+            for (boolean invalidPurchaseFee : new boolean[]{true, false}) {
+                CreateGameParams params = CreateGameParams.builder()
+                        .name("Invalid Updated Fee Game")
+                        .cowPrice(100.0)
+                        .purchaseFee(invalidPurchaseFee ? invalidFee : 1.0)
+                        .sellingFee(invalidPurchaseFee ? 1.0 : invalidFee)
+                        .milkPrice(5.0)
+                        .startingBalance(1000.0)
+                        .startingDate(LocalDateTime.parse("2026-11-12T00:00:00"))
+                        .lastDate(LocalDateTime.parse("2027-03-12T00:00:00"))
+                        .degradationRate(0.01)
+                        .capacityPerUser(10)
+                        .carryingCapacity(100)
+                        .build();
+
+                mockMvc.perform(
+                        put("/api/game/update?id=1")
+                                .with(csrf())
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(objectMapper.writeValueAsString(params)))
+                        .andExpect(status().isBadRequest());
+            }
+        }
     }
 }

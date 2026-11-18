@@ -35,6 +35,8 @@ export default function GameEditPage() {
       name: game.name,
       startingBalance: game.startingBalance,
       cowPrice: game.cowPrice,
+      purchaseFee: game.purchaseFee,
+      sellingFee: game.sellingFee,
       milkPrice: game.milkPrice,
       startingDate: game.startingDate,
       lastDate: game.lastDate,

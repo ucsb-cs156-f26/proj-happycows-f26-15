@@ -47,6 +47,8 @@ describe("GameForm tests", () => {
     [
       /Starting Balance/,
       /Cow Price/,
+      /Purchase Fee/,
+      /Selling Fee/,
       /Milk Price/,
       /Starting Date/,
       /Last Date/,
@@ -185,6 +187,8 @@ describe("GameForm tests", () => {
       name: "",
       startingBalance: 10000,
       cowPrice: 100,
+      purchaseFee: 0,
+      sellingFee: 0,
       milkPrice: 1,
       degradationRate: 0.001,
       carryingCapacity: 100,
@@ -211,6 +215,8 @@ describe("GameForm tests", () => {
       "carryingCapacity",
       "milkPrice",
       "cowPrice",
+      "purchaseFee",
+      "sellingFee",
       "startingBalance",
       "startingDate",
       "lastDate",
@@ -476,6 +482,8 @@ describe("GameForm tests", () => {
       name: "",
       startingBalance: 10000,
       cowPrice: 100,
+      purchaseFee: 0,
+      sellingFee: 0,
       milkPrice: 1,
       degradationRate: 0.001,
       carryingCapacity: 100,
@@ -504,6 +512,8 @@ describe("GameForm tests", () => {
       "carryingCapacity",
       "milkPrice",
       "cowPrice",
+      "purchaseFee",
+      "sellingFee",
       "startingBalance",
       "startingDate",
       "lastDate",
@@ -566,6 +576,8 @@ describe("GameForm tests", () => {
       name: "",
       startingBalance: 10000,
       cowPrice: 100,
+      purchaseFee: 0,
+      sellingFee: 0,
       milkPrice: 1,
       degradationRate: 0.001,
       carryingCapacity: 100,
@@ -613,5 +625,79 @@ describe("GameForm tests", () => {
     expect(screen.getByTestId("GameForm-lastDate")).toHaveValue(
       defaultValuesData.lastDate,
     );
+  });
+
+  it("defaults both transaction fees to zero", async () => {
+    axiosMock
+      .onGet("/api/game/all-health-update-strategies")
+      .reply(200, healthUpdateStrategyListFixtures.real);
+
+    render(
+      <QueryClientProvider client={new QueryClient()}>
+        <Router>
+          <GameForm submitAction={vi.fn()} />
+        </Router>
+      </QueryClientProvider>,
+    );
+
+    expect(await screen.findByTestId("GameForm-purchaseFee")).toHaveValue(0);
+    expect(screen.getByTestId("GameForm-sellingFee")).toHaveValue(0);
+  });
+
+  it("shows saved transaction fees when editing a game", async () => {
+    axiosMock
+      .onGet("/api/game/all-health-update-strategies")
+      .reply(200, healthUpdateStrategyListFixtures.real);
+
+    render(
+      <QueryClientProvider client={new QueryClient()}>
+        <Router>
+          <GameForm
+            initialGame={{
+              ...gameFixtures.threeGame[0],
+              purchaseFee: 1.5,
+              sellingFee: 2.5,
+            }}
+            submitAction={vi.fn()}
+          />
+        </Router>
+      </QueryClientProvider>,
+    );
+
+    expect(await screen.findByTestId("GameForm-purchaseFee")).toHaveValue(1.5);
+    expect(screen.getByTestId("GameForm-sellingFee")).toHaveValue(2.5);
+  });
+
+  it("rejects negative transaction fees", async () => {
+    const submitAction = vi.fn();
+    axiosMock
+      .onGet("/api/game/all-health-update-strategies")
+      .reply(200, healthUpdateStrategyListFixtures.real);
+
+    render(
+      <QueryClientProvider client={new QueryClient()}>
+        <Router>
+          <GameForm submitAction={submitAction} />
+        </Router>
+      </QueryClientProvider>,
+    );
+
+    expect(
+      await screen.findByTestId("GameForm-purchaseFee"),
+    ).toBeInTheDocument();
+
+    fireEvent.change(screen.getByTestId("GameForm-purchaseFee"), {
+      target: { value: "-1" },
+    });
+    fireEvent.change(screen.getByTestId("GameForm-sellingFee"), {
+      target: { value: "-2" },
+    });
+    fireEvent.click(screen.getByTestId("GameForm-Submit-Button"));
+
+    expect(
+      await screen.findByText("Purchase fee must be ≥ 0"),
+    ).toBeInTheDocument();
+    expect(screen.getByText("Selling fee must be ≥ 0")).toBeInTheDocument();
+    expect(submitAction).not.toHaveBeenCalled();
   });
 });

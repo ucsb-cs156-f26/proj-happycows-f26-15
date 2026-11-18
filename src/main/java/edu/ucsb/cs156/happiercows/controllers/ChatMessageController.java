@@ -23,9 +23,6 @@ import edu.ucsb.cs156.happiercows.entities.Farmer;
 import edu.ucsb.cs156.happiercows.repositories.FarmerRepository;
 import edu.ucsb.cs156.happiercows.repositories.UserRepository;
 
-import edu.ucsb.cs156.happiercows.models.CensorResult;
-import edu.ucsb.cs156.happiercows.services.ChatFilterService;
-
 import org.springframework.security.core.Authentication;
 
 
@@ -39,7 +36,7 @@ import java.util.Optional;
 @RestController
 @Slf4j
 public class ChatMessageController extends ApiController{
-    
+
     @Autowired
     private ChatMessageRepository chatMessageRepository;
 
@@ -51,9 +48,6 @@ public class ChatMessageController extends ApiController{
 
     @Autowired
     ObjectMapper mapper;
-
-    @Autowired
-    private ChatFilterService chatFilterService;
 
     @Operation(summary = "Get all chat messages", description = "Get all chat messages associated with a specific game.")
     @PreAuthorize("hasAnyRole('ROLE_USER', 'ROLE_ADMIN')")
@@ -151,12 +145,11 @@ public class ChatMessageController extends ApiController{
         ChatMessage chatMessage = ChatMessage.builder()
         .gameId(gameId)
         .userId(userId)
-        .message(censorResult.getText())
+        .message(content)
         .hidden(false)
         .dm(false)
         .toUserId(0)
         .build();
-
 
         // Save the message
         chatMessageRepository.save(chatMessage);

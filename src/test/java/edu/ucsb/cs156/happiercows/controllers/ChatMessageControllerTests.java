@@ -36,13 +36,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 
-import static org.mockito.ArgumentMatchers.anyString;
-
-import edu.ucsb.cs156.happiercows.models.CensorResult;
-import edu.ucsb.cs156.happiercows.services.ChatFilterService;
-import org.junit.jupiter.api.BeforeEach;
-import org.mockito.ArgumentCaptor;
-
 import edu.ucsb.cs156.happiercows.ControllerTestCase;
 import edu.ucsb.cs156.happiercows.repositories.ChatMessageRepository;
 import edu.ucsb.cs156.happiercows.entities.ChatMessage;
@@ -65,15 +58,6 @@ public class ChatMessageControllerTests extends ControllerTestCase {
 
     @MockBean
     UserRepository userRepository;
-
-    @MockBean
-    ChatFilterService chatFilterService;
-
-    @BeforeEach
-    public void setUpChatFilter() {
-        when(chatFilterService.censor(anyString()))
-            .thenAnswer(invocation -> new CensorResult(invocation.getArgument(0), false));
-    }
 
     @Autowired
     ObjectMapper mapper;

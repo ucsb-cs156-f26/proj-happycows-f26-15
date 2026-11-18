@@ -115,6 +115,7 @@ export default function AdminGameCard({ commonItem, currentUser }) {
             </Row>
           </Card.Title>
         </Card.Header>
+
         <Card.Body style={bodyStyle}>
           <Row>
             <Col xs={12} sm={6} md={3} className="mb-3">
@@ -123,66 +124,96 @@ export default function AdminGameCard({ commonItem, currentUser }) {
               </div>
               <div>{game.cowPrice}</div>
             </Col>
+
             <Col xs={12} sm={6} md={3} className="mb-3">
               <div>
                 <strong>Milk Price:</strong>
               </div>
               <div>{game.milkPrice}</div>
             </Col>
+
+            {/* Issue #47: Display purchase and selling fees */}
+            <Col xs={12} sm={6} md={3} className="mb-3">
+              <div>
+                <strong>Purchase Fee:</strong>
+              </div>
+              <div data-testid={`AdminGameCard-PurchaseFee-${game.id}`}>
+                ${game.purchaseFee ?? 0}
+              </div>
+            </Col>
+
+            <Col xs={12} sm={6} md={3} className="mb-3">
+              <div>
+                <strong>Selling Fee:</strong>
+              </div>
+              <div data-testid={`AdminGameCard-SellingFee-${game.id}`}>
+                ${game.sellingFee ?? 0}
+              </div>
+            </Col>
+
             <Col xs={12} sm={6} md={3} className="mb-3">
               <div>
                 <strong>Start Balance:</strong>
               </div>
               <div>{game.startingBalance}</div>
             </Col>
+
             <Col xs={12} sm={6} md={3} className="mb-3">
               <div>
                 <strong>Starting Date:</strong>
               </div>
               <div>{formatDate(game.startingDate)}</div>
             </Col>
+
             <Col xs={12} sm={6} md={3} className="mb-3">
               <div>
                 <strong>Last Date:</strong>
               </div>
               <div>{formatDate(game.lastDate)}</div>
             </Col>
+
             <Col xs={12} sm={6} md={3} className="mb-3">
               <div>
                 <strong>Degrad Rate:</strong>
               </div>
               <div>{game.degradationRate}</div>
             </Col>
+
             <Col xs={12} sm={6} md={3} className="mb-3">
               <div>
                 <strong>Show Dashboard:</strong>
               </div>
               <div>{String(game.showLeaderboard)}</div>
             </Col>
+
             <Col xs={12} sm={6} md={3} className="mb-3">
               <div>
                 <strong>Show Chat:</strong>
               </div>
               <div>{String(game.showChat)}</div>
             </Col>
+
             <Col xs={12} sm={6} md={3} className="mb-3">
               <div>
                 <strong>Total Cows:</strong>
               </div>
               <div>{commonItem.totalCows || 0}</div>
             </Col>
+
             <Col xs={12} sm={6} md={3} className="mb-3">
               <div>
                 <strong>Cap / User:</strong>
               </div>
               <div>{game.capacityPerUser}</div>
             </Col>
+
             <Col xs={12} sm={6} md={3} className="mb-3">
               <div>
                 <strong>Carry Cap:</strong>
               </div>
               <div>{game.carryingCapacity}</div>
             </Col>
+
             <Col xs={12} sm={6} md={3} className="mb-3">
               <div>
                 <strong>Eff Cap:</strong>
@@ -190,7 +221,9 @@ export default function AdminGameCard({ commonItem, currentUser }) {
               <div>{commonItem.effectiveCapacity || 0}</div>
             </Col>
           </Row>
+
           <hr />
+
           <div className="d-flex flex-wrap gap-2">
             <Button
               variant="primary"
@@ -200,6 +233,7 @@ export default function AdminGameCard({ commonItem, currentUser }) {
             >
               Edit
             </Button>
+
             <Button
               variant="danger"
               size="sm"
@@ -208,6 +242,7 @@ export default function AdminGameCard({ commonItem, currentUser }) {
             >
               Delete
             </Button>
+
             <Button
               variant="success"
               size="sm"
@@ -216,6 +251,7 @@ export default function AdminGameCard({ commonItem, currentUser }) {
             >
               Stats CSV
             </Button>
+
             <Button
               variant="info"
               size="sm"
@@ -224,6 +260,7 @@ export default function AdminGameCard({ commonItem, currentUser }) {
             >
               Announcements
             </Button>
+
             <Button
               variant="info"
               size="sm"
@@ -232,6 +269,7 @@ export default function AdminGameCard({ commonItem, currentUser }) {
             >
               Chat
             </Button>
+
             <Button
               variant="info"
               size="sm"
@@ -240,6 +278,7 @@ export default function AdminGameCard({ commonItem, currentUser }) {
             >
               Dashboard
             </Button>
+
             {game.courseId != null && (
               <Button
                 variant="info"

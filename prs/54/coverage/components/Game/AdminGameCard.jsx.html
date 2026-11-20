@@ -338,30 +338,7 @@
 <a name='L273'></a><a href='#L273'>273</a>
 <a name='L274'></a><a href='#L274'>274</a>
 <a name='L275'></a><a href='#L275'>275</a>
-<a name='L276'></a><a href='#L276'>276</a>
-<a name='L277'></a><a href='#L277'>277</a>
-<a name='L278'></a><a href='#L278'>278</a>
-<a name='L279'></a><a href='#L279'>279</a>
-<a name='L280'></a><a href='#L280'>280</a>
-<a name='L281'></a><a href='#L281'>281</a>
-<a name='L282'></a><a href='#L282'>282</a>
-<a name='L283'></a><a href='#L283'>283</a>
-<a name='L284'></a><a href='#L284'>284</a>
-<a name='L285'></a><a href='#L285'>285</a>
-<a name='L286'></a><a href='#L286'>286</a>
-<a name='L287'></a><a href='#L287'>287</a>
-<a name='L288'></a><a href='#L288'>288</a>
-<a name='L289'></a><a href='#L289'>289</a>
-<a name='L290'></a><a href='#L290'>290</a>
-<a name='L291'></a><a href='#L291'>291</a>
-<a name='L292'></a><a href='#L292'>292</a>
-<a name='L293'></a><a href='#L293'>293</a>
-<a name='L294'></a><a href='#L294'>294</a>
-<a name='L295'></a><a href='#L295'>295</a>
-<a name='L296'></a><a href='#L296'>296</a>
-<a name='L297'></a><a href='#L297'>297</a>
-<a name='L298'></a><a href='#L298'>298</a>
-<a name='L299'></a><a href='#L299'>299</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
+<a name='L276'></a><a href='#L276'>276</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -462,29 +439,6 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -776,7 +730,6 @@ export default function AdminGameCard({ commonItem, currentUser }) {
             &lt;/Row&gt;
           &lt;/Card.Title&gt;
         &lt;/Card.Header&gt;
-&nbsp;
         &lt;Card.Body style={bodyStyle}&gt;
           &lt;Row&gt;
             &lt;Col xs={12} sm={6} md={3} className="mb-3"&gt;
@@ -785,15 +738,12 @@ export default function AdminGameCard({ commonItem, currentUser }) {
               &lt;/div&gt;
               &lt;div&gt;{game.cowPrice}&lt;/div&gt;
             &lt;/Col&gt;
-&nbsp;
             &lt;Col xs={12} sm={6} md={3} className="mb-3"&gt;
               &lt;div&gt;
                 &lt;strong&gt;Milk Price:&lt;/strong&gt;
               &lt;/div&gt;
               &lt;div&gt;{game.milkPrice}&lt;/div&gt;
             &lt;/Col&gt;
-&nbsp;
-            {/* Issue #47: Display purchase and selling fees */}
             &lt;Col xs={12} sm={6} md={3} className="mb-3"&gt;
               &lt;div&gt;
                 &lt;strong&gt;Purchase Fee:&lt;/strong&gt;
@@ -802,7 +752,6 @@ export default function AdminGameCard({ commonItem, currentUser }) {
                 ${game.purchaseFee ?? 0}
               &lt;/div&gt;
             &lt;/Col&gt;
-&nbsp;
             &lt;Col xs={12} sm={6} md={3} className="mb-3"&gt;
               &lt;div&gt;
                 &lt;strong&gt;Selling Fee:&lt;/strong&gt;
@@ -811,70 +760,60 @@ export default function AdminGameCard({ commonItem, currentUser }) {
                 ${game.sellingFee ?? 0}
               &lt;/div&gt;
             &lt;/Col&gt;
-&nbsp;
             &lt;Col xs={12} sm={6} md={3} className="mb-3"&gt;
               &lt;div&gt;
                 &lt;strong&gt;Start Balance:&lt;/strong&gt;
               &lt;/div&gt;
               &lt;div&gt;{game.startingBalance}&lt;/div&gt;
             &lt;/Col&gt;
-&nbsp;
             &lt;Col xs={12} sm={6} md={3} className="mb-3"&gt;
               &lt;div&gt;
                 &lt;strong&gt;Starting Date:&lt;/strong&gt;
               &lt;/div&gt;
               &lt;div&gt;{formatDate(game.startingDate)}&lt;/div&gt;
             &lt;/Col&gt;
-&nbsp;
             &lt;Col xs={12} sm={6} md={3} className="mb-3"&gt;
               &lt;div&gt;
                 &lt;strong&gt;Last Date:&lt;/strong&gt;
               &lt;/div&gt;
               &lt;div&gt;{formatDate(game.lastDate)}&lt;/div&gt;
             &lt;/Col&gt;
-&nbsp;
             &lt;Col xs={12} sm={6} md={3} className="mb-3"&gt;
               &lt;div&gt;
                 &lt;strong&gt;Degrad Rate:&lt;/strong&gt;
               &lt;/div&gt;
               &lt;div&gt;{game.degradationRate}&lt;/div&gt;
             &lt;/Col&gt;
-&nbsp;
             &lt;Col xs={12} sm={6} md={3} className="mb-3"&gt;
               &lt;div&gt;
                 &lt;strong&gt;Show Dashboard:&lt;/strong&gt;
               &lt;/div&gt;
               &lt;div&gt;{String(game.showLeaderboard)}&lt;/div&gt;
             &lt;/Col&gt;
-&nbsp;
             &lt;Col xs={12} sm={6} md={3} className="mb-3"&gt;
               &lt;div&gt;
                 &lt;strong&gt;Show Chat:&lt;/strong&gt;
               &lt;/div&gt;
               &lt;div&gt;{String(game.showChat)}&lt;/div&gt;
             &lt;/Col&gt;
-&nbsp;
             &lt;Col xs={12} sm={6} md={3} className="mb-3"&gt;
               &lt;div&gt;
                 &lt;strong&gt;Total Cows:&lt;/strong&gt;
               &lt;/div&gt;
               &lt;div&gt;{commonItem.totalCows || 0}&lt;/div&gt;
             &lt;/Col&gt;
-&nbsp;
             &lt;Col xs={12} sm={6} md={3} className="mb-3"&gt;
               &lt;div&gt;
                 &lt;strong&gt;Cap / User:&lt;/strong&gt;
               &lt;/div&gt;
               &lt;div&gt;{game.capacityPerUser}&lt;/div&gt;
             &lt;/Col&gt;
-&nbsp;
             &lt;Col xs={12} sm={6} md={3} className="mb-3"&gt;
               &lt;div&gt;
                 &lt;strong&gt;Carry Cap:&lt;/strong&gt;
               &lt;/div&gt;
               &lt;div&gt;{game.carryingCapacity}&lt;/div&gt;
             &lt;/Col&gt;
-&nbsp;
             &lt;Col xs={12} sm={6} md={3} className="mb-3"&gt;
               &lt;div&gt;
                 &lt;strong&gt;Eff Cap:&lt;/strong&gt;
@@ -882,9 +821,7 @@ export default function AdminGameCard({ commonItem, currentUser }) {
               &lt;div&gt;{commonItem.effectiveCapacity || 0}&lt;/div&gt;
             &lt;/Col&gt;
           &lt;/Row&gt;
-&nbsp;
           &lt;hr /&gt;
-&nbsp;
           &lt;div className="d-flex flex-wrap gap-2"&gt;
             &lt;Button
               variant="primary"
@@ -894,7 +831,6 @@ export default function AdminGameCard({ commonItem, currentUser }) {
             &gt;
               Edit
             &lt;/Button&gt;
-&nbsp;
             &lt;Button
               variant="danger"
               size="sm"
@@ -903,7 +839,6 @@ export default function AdminGameCard({ commonItem, currentUser }) {
             &gt;
               Delete
             &lt;/Button&gt;
-&nbsp;
             &lt;Button
               variant="success"
               size="sm"
@@ -912,7 +847,6 @@ export default function AdminGameCard({ commonItem, currentUser }) {
             &gt;
               Stats CSV
             &lt;/Button&gt;
-&nbsp;
             &lt;Button
               variant="info"
               size="sm"
@@ -921,7 +855,6 @@ export default function AdminGameCard({ commonItem, currentUser }) {
             &gt;
               Announcements
             &lt;/Button&gt;
-&nbsp;
             &lt;Button
               variant="info"
               size="sm"
@@ -930,7 +863,6 @@ export default function AdminGameCard({ commonItem, currentUser }) {
             &gt;
               Chat
             &lt;/Button&gt;
-&nbsp;
             &lt;Button
               variant="info"
               size="sm"
@@ -939,7 +871,6 @@ export default function AdminGameCard({ commonItem, currentUser }) {
             &gt;
               Dashboard
             &lt;/Button&gt;
-&nbsp;
             {game.courseId != null &amp;&amp; (
               &lt;Button
                 variant="info"
@@ -964,7 +895,7 @@ export default function AdminGameCard({ commonItem, currentUser }) {
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2026-11-20T00:59:18.752Z
+                at 2026-11-20T01:25:08.543Z
             </div>
         <script src="../../prettify.js"></script>
         <script>

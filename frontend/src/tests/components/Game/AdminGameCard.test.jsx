@@ -930,4 +930,62 @@ describe("AdminGameCard tests", () => {
 
     expect(activityButton).toHaveTextContent("Activity");
   });
+
+  test("displays configured purchase and selling fees", () => {
+    const queryClient = new QueryClient();
+    const original = gamePlusFixtures.threeGamePlus[0];
+    const commonItem = {
+      ...original,
+      game: { ...original.game, purchaseFee: 5, sellingFee: 3 },
+    };
+
+    render(
+      <QueryClientProvider client={queryClient}>
+        <MemoryRouter>
+          <AdminGameCard
+            commonItem={commonItem}
+            currentUser={currentUserFixtures.adminUser}
+          />
+        </MemoryRouter>
+      </QueryClientProvider>,
+    );
+
+    expect(screen.getByText("Purchase Fee:")).toBeInTheDocument();
+    expect(screen.getByText("Selling Fee:")).toBeInTheDocument();
+    expect(screen.getByTestId("AdminGameCard-PurchaseFee-1")).toHaveTextContent(
+      "$5",
+    );
+    expect(screen.getByTestId("AdminGameCard-SellingFee-1")).toHaveTextContent(
+      "$3",
+    );
+    expect(screen.getByText("Cow Price:")).toBeInTheDocument();
+    expect(screen.getByText("Milk Price:")).toBeInTheDocument();
+  });
+
+  test("displays zero purchase and selling fees when not configured", () => {
+    const queryClient = new QueryClient();
+    const original = gamePlusFixtures.threeGamePlus[0];
+    const game = { ...original.game };
+    delete game.purchaseFee;
+    delete game.sellingFee;
+    const commonItem = { ...original, game };
+
+    render(
+      <QueryClientProvider client={queryClient}>
+        <MemoryRouter>
+          <AdminGameCard
+            commonItem={commonItem}
+            currentUser={currentUserFixtures.adminUser}
+          />
+        </MemoryRouter>
+      </QueryClientProvider>,
+    );
+
+    expect(screen.getByTestId("AdminGameCard-PurchaseFee-1")).toHaveTextContent(
+      "$0",
+    );
+    expect(screen.getByTestId("AdminGameCard-SellingFee-1")).toHaveTextContent(
+      "$0",
+    );
+  });
 });

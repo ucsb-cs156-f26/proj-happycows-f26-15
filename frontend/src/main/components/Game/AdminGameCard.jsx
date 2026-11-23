@@ -131,6 +131,22 @@ export default function AdminGameCard({ commonItem, currentUser }) {
             </Col>
             <Col xs={12} sm={6} md={3} className="mb-3">
               <div>
+                <strong>Purchase Fee:</strong>
+              </div>
+              <div data-testid={`AdminGameCard-PurchaseFee-${game.id}`}>
+                ${game.purchaseFee ?? 0}
+              </div>
+            </Col>
+            <Col xs={12} sm={6} md={3} className="mb-3">
+              <div>
+                <strong>Selling Fee:</strong>
+              </div>
+              <div data-testid={`AdminGameCard-SellingFee-${game.id}`}>
+                ${game.sellingFee ?? 0}
+              </div>
+            </Col>
+            <Col xs={12} sm={6} md={3} className="mb-3">
+              <div>
                 <strong>Start Balance:</strong>
               </div>
               <div>{game.startingBalance}</div>

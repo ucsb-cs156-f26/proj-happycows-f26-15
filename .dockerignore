@@ -1,0 +1,38 @@
+# Local credentials and editor configuration
+**/.env*
+**/*.pem
+**/*.key
+.idea/
+.vscode/
+.DS_Store
+.claude/
+.agents/
+.codex/
+
+# Build output and dependency directories are rebuilt in the builder stage.
+target/
+frontend/node_modules/
+frontend/build/
+frontend/coverage/
+frontend/reports/
+frontend/.stryker-tmp/
+frontend/storybook-static/
+frontend/storybook_static/
+**/*.log
+
+# Development-only files; retain .git for the git-commit-id Maven plugin.
+.devcontainer/
+.devcontainer.json
+.github/
+docs/
+issues/
+plans/
+**/*.md
+frontend/.storybook/
+frontend/src/stories/
+frontend/src/tests/
+frontend/src/fixtures/
+frontend/src/setupTests.*
+frontend/vitest.setup.*
+frontend/stryker.config.*
+frontend/eslint.config.*

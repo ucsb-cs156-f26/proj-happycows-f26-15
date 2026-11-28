@@ -23,4 +23,4 @@ repo_name: "TBD"
 repo: ucsb-cs156-f26/proj-happycows-f26-15
 owner: ucsb-cs156-f26
 repo_name: proj-happycows-f26-15
-pull_requests: [{"author":{"id":"U_kgDODR8ANQ","is_bot":false,"login":"siddhrthsharma","name":"Siddharth Sharma"},"headRefName":"feature/15-herd-buy-toast","number":53,"title":"ss - show success toast with quantity after buying cows","url":"https://github.com/ucsb-cs156-f26/proj-happycows-f26-15/pull/53"}]
+pull_requests: []

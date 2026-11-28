@@ -32,6 +32,7 @@ import AdminGameActivityPage from "main/pages/AdminGameActivityPage";
 import AdminAnnouncementsPage from "main/pages/AdminAnnouncementsPage";
 import AdminCreateAnnouncementsPage from "main/pages/AdminCreateAnnouncementsPage";
 import AdminEditAnnouncementsPage from "main/pages/AdminEditAnnouncementsPage";
+import AdminBannedWordsPage from "main/pages/AdminBannedWordsPage";
 import DeveloperPage from "main/pages/DeveloperPage";
 import ChatHistoryPage from "main/pages/ChatHistoryPage";
 
@@ -78,6 +79,7 @@ function App() {
         path="/admin/announcements/:gameId/edit/:announcementId"
         element={<AdminEditAnnouncementsPage />}
       />
+      <Route path="/admin/bannedwords" element={<AdminBannedWordsPage />} />
       <Route path="/developer" element={<DeveloperPage />} />
       <Route path="/chat/:gameId" element={<ChatHistoryPage />} />
     </>

@@ -20,6 +20,7 @@ vi.mock("react-toastify", async () => {
   const toast = vi.fn((x) => mockToast(x));
   toast.error = vi.fn((x) => mockToast(x));
   toast.warn = vi.fn((x) => mockToast(x));
+  toast.success = vi.fn((x) => mockToast(x));
 
   return {
     __esModule: true,
@@ -244,6 +245,63 @@ describe("PlayPage tests", () => {
     fireEvent.click(submitModalButton);
 
     await waitFor(() => expect(axiosMock.history.put.length).toBe(1));
+  });
+
+  test("buying one cow sends numCows and shows a singular success toast", async () => {
+    mockToast.mockClear();
+    renderPage();
+
+    fireEvent.click(await screen.findByTestId("buy-cow-button"));
+    await screen.findByTestId("buy-sell-cow-modal");
+    fireEvent.click(screen.getByTestId("buy-sell-cow-modal-submit"));
+
+    await waitFor(() => expect(axiosMock.history.put.length).toBe(1));
+    expect(axiosMock.history.put[0].url).toBe("/api/farmer/buy");
+    expect(axiosMock.history.put[0].params).toEqual({ gameId: 1, numCows: 1 });
+    expect(JSON.parse(axiosMock.history.put[0].data)).toEqual(defaultFarmer);
+    await waitFor(() =>
+      expect(mockToast).toHaveBeenCalledWith("You bought 1 cow!"),
+    );
+  });
+
+  test("buying several cows sends the entered quantity and shows a plural success toast", async () => {
+    mockToast.mockClear();
+    renderPage();
+
+    fireEvent.click(await screen.findByTestId("buy-cow-button"));
+    await screen.findByTestId("buy-sell-cow-modal");
+    fireEvent.change(screen.getByTestId("buy-sell-cow-modal-input"), {
+      target: { value: "3" },
+    });
+    fireEvent.click(screen.getByTestId("buy-sell-cow-modal-submit"));
+
+    await waitFor(() => expect(axiosMock.history.put.length).toBe(1));
+    expect(axiosMock.history.put[0].params).toEqual({
+      gameId: 1,
+      numCows: "3",
+    });
+    await waitFor(() =>
+      expect(mockToast).toHaveBeenCalledWith("You bought 3 cows!"),
+    );
+  });
+
+  test("no success toast is shown when buying fails", async () => {
+    mockToast.mockClear();
+    renderPage();
+    axiosMock
+      .onPut("/api/farmer/buy")
+      .reply(400, { message: "You need more money!" });
+
+    fireEvent.click(await screen.findByTestId("buy-cow-button"));
+    await screen.findByTestId("buy-sell-cow-modal");
+    fireEvent.click(screen.getByTestId("buy-sell-cow-modal-submit"));
+
+    await waitFor(() =>
+      expect(mockToast).toHaveBeenCalledWith("You need more money!"),
+    );
+    expect(mockToast).not.toHaveBeenCalledWith(
+      expect.stringContaining("You bought"),
+    );
   });
 
   test("click sell button", async () => {

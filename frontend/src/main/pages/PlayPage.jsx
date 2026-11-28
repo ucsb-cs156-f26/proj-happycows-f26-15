@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { Container, CardGroup, Button } from "react-bootstrap";
 import { useParams } from "react-router";
+import { toast } from "react-toastify";
 
 import BasicLayout from "main/layouts/BasicLayout/BasicLayout";
 import GameOverview from "main/components/Game/GameOverview";
@@ -125,10 +126,10 @@ export default function PlayPage() {
   // Stryker restore all
 
   // Stryker disable all
-  const objectToAxiosParamsBuy = (newFarmer) => ({
+  const objectToAxiosParamsBuy = ({ farmer, numCows }) => ({
     url: "/api/farmer/buy",
     method: "PUT",
-    data: newFarmer,
+    data: farmer,
     params: {
       gameId: gameId,
       numCows: numCows,
@@ -136,14 +137,21 @@ export default function PlayPage() {
   });
   // Stryker restore all
 
+  const onSuccessBuy = (_farmer, { numCows }) => {
+    const cowWord = Number(numCows) === 1 ? "cow" : "cows";
+    toast.success(`You bought ${numCows} ${cowWord}!`);
+  };
+
   // Stryker disable all
-  const mutationbuy = useBackendMutation(objectToAxiosParamsBuy, null, [
-    `/api/farmer/forcurrentuser?gameId=${gameId}`,
-  ]);
+  const mutationbuy = useBackendMutation(
+    objectToAxiosParamsBuy,
+    { onSuccess: onSuccessBuy },
+    [`/api/farmer/forcurrentuser?gameId=${gameId}`],
+  );
   // Stryker restore all
 
   const onBuy = (farmer, numCows) => {
-    mutationbuy.mutate(farmer, numCows);
+    mutationbuy.mutate({ farmer, numCows });
   };
 
   const onSuccessSell = () => {};

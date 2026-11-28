@@ -8,8 +8,16 @@ When updating the version of Java used, the following places need to be adjusted
   `pitest-maven` support the new Java version, since both read compiled class files)
 * `.java-version` file (used by the Github Actions workflows in `ucsb-cs156/workflows`)
 * `system.properties` file (`java.runtime.version`, used by the Heroku/Dokku Java buildpack)
-* `Dockerfile` used for deploying on Dokku (the `openjdk-NN-jdk` package and the `JAVA_HOME` path)
+* `Dockerfile` used for deploying on Dokku (both the Maven builder's Temurin JDK tag and the
+  final Temurin JRE tag; currently Java 25)
 * `docs/installation.md` (names the Java version in step 1)
+
+## Updating the Maven version
+
+The Docker builder pins Maven 3.9.16 in `maven:3.9.16-eclipse-temurin-25-noble` rather than
+installing a distribution-provided Maven package. Update that tag when changing Maven, keeping
+the JDK major version in sync with the files above. There is no Maven wrapper in this repo.
+The runtime image is `eclipse-temurin:25-jre-alpine`; Maven and the JDK stay in the builder.
 
 ## Updating the node version
 
@@ -21,8 +29,17 @@ Places that name the node version in this repo:
 * `frontend/.nvmrc` (used by developers running `nvm use`; keep in sync with `engines`)
 * `pom.xml`: the `app.frontend.nodeVersion` property, referenced by the two `frontend-maven-plugin`
   configurations (`integration` and `production` profiles)
-* `Dockerfile`: the `ENV NODE_VERSION=...` line (unlike some sibling repos, this Dockerfile installs
-  node itself via nvm rather than through `frontend-maven-plugin`)
+
+Docker also uses `app.frontend.nodeVersion` through the production `frontend-maven-plugin`;
+there is no separate Docker Node pin or NVM installation to update.
+
+The production plugin's `app.frontend.installDirectory` defaults to `${project.build.directory}`
+(`target`). Docker overrides it with `/opt/frontend`, so `clean package` preserves the Node/npm
+installation prepared in the dependency layer. `cache.use` defaults to `false`: normal production
+builds install Node and run `npm ci` when needed. Set `-Dcache.use=true` only after installing
+Node/npm and the frontend dependencies for the current manifests, as the Dockerfile does;
+it skips those installation steps, but still rebuilds changed frontend source. See
+[Docker build verification](./dokku.md#verifying-the-docker-build) for rebuild and smoke checks.
 
 npm 11 (bundled with node 24) warns about dependency install scripts not covered by `allowScripts`;
 review them, then `npm install-scripts approve --all` in `frontend/` and commit the resulting

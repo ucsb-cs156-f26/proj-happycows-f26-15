@@ -48,6 +48,44 @@ describe("AppNavbar tests", () => {
     expect(screen.queryByText("List Games V2")).not.toBeInTheDocument();
   });
 
+  test("admin dropdown has a Banned Words link", async () => {
+    const currentUser = currentUserFixtures.adminUser;
+    const doLogin = vi.fn();
+
+    render(
+      <QueryClientProvider client={queryClient}>
+        <MemoryRouter>
+          <AppNavbar currentUser={currentUser} doLogin={doLogin} />
+        </MemoryRouter>
+      </QueryClientProvider>,
+    );
+
+    fireEvent.click(await screen.findByText("Admin"));
+    const link = await screen.findByText("Banned Words");
+    expect(link).toHaveAttribute("href", "/admin/bannedwords");
+  });
+
+  test("regular user does not see the Admin menu or Banned Words link", async () => {
+    const currentUser = currentUserFixtures.userOnly;
+    const doLogin = vi.fn();
+
+    render(
+      <QueryClientProvider client={queryClient}>
+        <MemoryRouter>
+          <AppNavbar currentUser={currentUser} doLogin={doLogin} />
+        </MemoryRouter>
+      </QueryClientProvider>,
+    );
+
+    expect(
+      await screen.findByText("Welcome, pconrad.cis@gmail.com"),
+    ).toBeInTheDocument();
+    expect(
+      screen.queryByTestId("appnavbar-admin-dropdown"),
+    ).not.toBeInTheDocument();
+    expect(screen.queryByText("Banned Words")).not.toBeInTheDocument();
+  });
+
   test("renders H2Console and Swagger links correctly", async () => {
     const currentUser = currentUserFixtures.adminUser;
     const systemInfo = systemInfoFixtures.showingAll;

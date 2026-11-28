@@ -81,6 +81,9 @@ export default function AppNavbar({
                   <NavDropdown.Item href="/admin/reports">
                     Instructor Reports
                   </NavDropdown.Item>
+                  <NavDropdown.Item href="/admin/bannedwords">
+                    Banned Words
+                  </NavDropdown.Item>
                   <NavDropdown.Item href="/developer">
                     Developer Info
                   </NavDropdown.Item>

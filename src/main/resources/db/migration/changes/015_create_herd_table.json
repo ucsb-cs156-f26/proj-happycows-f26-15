@@ -1,0 +1,117 @@
+{
+  "databaseChangeLog": [
+    {
+      "changeSet": {
+        "id": "015-create-herd-table",
+        "author": "pc",
+        "comment": "Create the herd table (see epic #6, issue #12): a herd is a group of cows owned by one farmer in one game that share a single health value.",
+        "preConditions": [
+          { "onFail": "MARK_RAN" },
+          {
+            "not": [
+              {
+                "tableExists": {
+                  "tableName": "herd"
+                }
+              }
+            ]
+          }
+        ],
+        "changes": [
+          {
+            "createTable": {
+              "tableName": "herd",
+              "columns": [
+                {
+                  "column": {
+                    "name": "id",
+                    "type": "BIGINT",
+                    "autoIncrement": true,
+                    "constraints": {
+                      "nullable": false,
+                      "primaryKey": true,
+                      "primaryKeyName": "HERD_PK"
+                    }
+                  }
+                },
+                {
+                  "column": {
+                    "name": "user_id",
+                    "type": "BIGINT",
+                    "constraints": { "nullable": false }
+                  }
+                },
+                {
+                  "column": {
+                    "name": "game_id",
+                    "type": "BIGINT",
+                    "constraints": { "nullable": false }
+                  }
+                },
+                {
+                  "column": {
+                    "name": "num_cows",
+                    "type": "INT",
+                    "defaultValueNumeric": 0,
+                    "constraints": { "nullable": false }
+                  }
+                },
+                {
+                  "column": {
+                    "name": "cow_health",
+                    "type": "DOUBLE",
+                    "defaultValueNumeric": 0,
+                    "constraints": { "nullable": false }
+                  }
+                }
+              ]
+            }
+          },
+          {
+            "addForeignKeyConstraint": {
+              "baseColumnNames": "game_id,user_id",
+              "baseTableName": "herd",
+              "constraintName": "FK_HERD_FARMER",
+              "onDelete": "RESTRICT",
+              "onUpdate": "RESTRICT",
+              "referencedColumnNames": "game_id,user_id",
+              "referencedTableName": "farmer"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "changeSet": {
+        "id": "015-create-herd-farmer-index",
+        "author": "pc",
+        "comment": "Index herd by its owning farmer (game_id, user_id): every buy, sell, and health update looks up a farmer's herds, and not every database indexes foreign keys automatically.",
+        "preConditions": [
+          { "onFail": "MARK_RAN" },
+          {
+            "not": [
+              {
+                "indexExists": {
+                  "tableName": "herd",
+                  "indexName": "IDX_HERD_FARMER"
+                }
+              }
+            ]
+          }
+        ],
+        "changes": [
+          {
+            "createIndex": {
+              "tableName": "herd",
+              "indexName": "IDX_HERD_FARMER",
+              "columns": [
+                { "column": { "name": "game_id" } },
+                { "column": { "name": "user_id" } }
+              ]
+            }
+          }
+        ]
+      }
+    }
+  ]
+}

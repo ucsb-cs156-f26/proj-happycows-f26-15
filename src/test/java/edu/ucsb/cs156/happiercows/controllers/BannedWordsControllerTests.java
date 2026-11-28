@@ -174,4 +174,19 @@ public class BannedWordsControllerTests extends ControllerTestCase {
         verify(bannedWordRepository, times(1)).save(toSave);
         assertEquals(Map.of("message", "Word 'darn' is already banned"), responseToJson(response));
     }
+
+    @WithMockUser(roles = { "ADMIN", "USER" })
+    @Test
+    public void admin_post_stores_word_using_chat_filter_normalization() throws Exception {
+        String expected = "i\u0307nek";
+        BannedWord toSave = BannedWord.builder().word(expected).build();
+        BannedWord saved = BannedWord.builder().id(1L).word(expected).build();
+        when(bannedWordRepository.findByWord(expected)).thenReturn(Optional.empty());
+        when(bannedWordRepository.save(toSave)).thenReturn(saved);
+
+        mockMvc.perform(post("/api/admin/bannedwords/post").param("word", "İNEK").with(csrf()))
+                .andExpect(status().isOk());
+
+        verify(bannedWordRepository, times(1)).save(toSave);
+    }
 }

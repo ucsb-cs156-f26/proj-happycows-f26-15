@@ -18,6 +18,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import org.springframework.dao.DataIntegrityViolationException;
+import edu.ucsb.cs156.happiercows.services.ChatFilterService;
 
 /** Admin-only API for maintaining the list of words censored in chat. */
 @Slf4j
@@ -41,7 +42,7 @@ public class BannedWordsController extends ApiController {
     @PostMapping("/post")
     public ResponseEntity<Object> postBannedWord(
             @Parameter(name = "word") @RequestParam String word) {
-        String normalized = word.trim().toLowerCase();
+        String normalized = ChatFilterService.normalize(word);
 
         if (normalized.isEmpty()) {
             return ResponseEntity.badRequest().body(genericMessage("Word must not be blank"));

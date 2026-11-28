@@ -5,6 +5,7 @@ import {
   waitFor,
   fireEvent,
   within,
+  act,
 } from "@testing-library/react";
 import { QueryClient, QueryClientProvider } from "react-query";
 import { MemoryRouter } from "react-router";
@@ -36,6 +37,28 @@ vi.mock("main/components/Chat/ChatMessageDisplay", () => ({
     </div>
   ),
 }));
+
+const cooldownModalState = vi.hoisted(() => ({ props: null }));
+const mockToast = vi.hoisted(() => vi.fn());
+
+vi.mock("main/components/Chat/ChatCooldownModal", () => ({
+  __esModule: true,
+  default: (props) => {
+    cooldownModalState.props = props;
+    return (
+      <div
+        data-testid="ChatCooldownModal-mock"
+        data-show={String(props.show)}
+        data-username={props.username ?? ""}
+      />
+    );
+  },
+}));
+
+vi.mock("react-toastify", async () => {
+  const actual = await vi.importActual("react-toastify");
+  return { __esModule: true, ...actual, toast: mockToast };
+});
 
 const mockUseParams = vi.fn(() => ({ gameId: 1 }));
 const mockNavigate = vi.fn();
@@ -852,5 +875,99 @@ describe("ChatHistoryPage", () => {
     );
 
     spy.mockRestore();
+  });
+
+  describe("chat cooldown", () => {
+    const messagesWithHidden = {
+      data: {
+        pages: [
+          {
+            content: [
+              { id: 50, userId: 5, hidden: false },
+              { id: 51, userId: 7, hidden: true },
+            ],
+          },
+        ],
+      },
+    };
+
+    beforeEach(() => {
+      cooldownModalState.props = null;
+    });
+
+    test("admin sees a Cooldown button on every message, including hidden ones", () => {
+      mockInfiniteQuery(messagesWithHidden);
+
+      renderWithProviders(<ChatHistoryPage isAdmin={true} />);
+
+      const button = screen.getByTestId("ChatHistoryPage-cooldown-50");
+      expect(button).toHaveTextContent("Cooldown");
+      expect(button).toHaveClass("btn", "btn-warning", "btn-sm", "ms-2");
+      expect(
+        screen.getByTestId("ChatHistoryPage-cooldown-51"),
+      ).toBeInTheDocument();
+    });
+
+    test("non-admin sees no Cooldown buttons and no modal", () => {
+      mockInfiniteQuery(messagesWithHidden);
+
+      renderWithProviders(<ChatHistoryPage isAdmin={false} />);
+
+      expect(screen.queryAllByTestId(/ChatHistoryPage-cooldown-/)).toHaveLength(
+        0,
+      );
+      expect(
+        screen.queryByTestId("ChatCooldownModal-mock"),
+      ).not.toBeInTheDocument();
+    });
+
+    test("modal starts closed, opens for the clicked message's user, and closes via onClose", () => {
+      mockInfiniteQuery(messagesWithHidden);
+
+      renderWithProviders(<ChatHistoryPage isAdmin={true} />);
+
+      const modal = () => screen.getByTestId("ChatCooldownModal-mock");
+      expect(modal()).toHaveAttribute("data-show", "false");
+      expect(modal()).toHaveAttribute("data-username", "");
+
+      fireEvent.click(screen.getByTestId("ChatHistoryPage-cooldown-50"));
+      expect(modal()).toHaveAttribute("data-show", "true");
+      expect(modal()).toHaveAttribute("data-username", "Alice");
+
+      act(() => cooldownModalState.props.onClose());
+      expect(modal()).toHaveAttribute("data-show", "false");
+    });
+
+    test("submitting the modal mutates with the selected user and duration", () => {
+      const mutate = vi.fn();
+      vi.spyOn(backend, "useBackendMutation").mockReturnValue({ mutate });
+      mockInfiniteQuery(messagesWithHidden);
+
+      renderWithProviders(<ChatHistoryPage isAdmin={true} />);
+
+      fireEvent.click(screen.getByTestId("ChatHistoryPage-cooldown-51"));
+      act(() => cooldownModalState.props.onSubmit(600));
+
+      expect(mutate).toHaveBeenCalledTimes(1);
+      expect(mutate).toHaveBeenCalledWith({ userId: 7, durationSeconds: 600 });
+    });
+
+    test("cooldown mutation is configured with the admin endpoint, a success toast, and the users key", () => {
+      const mutationSpy = vi.spyOn(backend, "useBackendMutation");
+      mockInfiniteQuery();
+
+      renderWithProviders(<ChatHistoryPage isAdmin={true} />);
+
+      const [mutationFn, options, queryKey] = mutationSpy.mock.calls[1];
+      expect(mutationFn({ userId: 5, durationSeconds: 300 })).toEqual({
+        url: "/api/admin/users/chatcooldown",
+        method: "POST",
+        params: { userId: 5, durationSeconds: 300 },
+      });
+      expect(queryKey).toEqual(["/api/admin/users"]);
+
+      options.onSuccess({ message: "User with id 5 on chat cooldown" });
+      expect(mockToast).toHaveBeenCalledWith("User with id 5 on chat cooldown");
+    });
   });
 });

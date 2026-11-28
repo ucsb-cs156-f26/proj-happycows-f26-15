@@ -7,9 +7,75 @@ To deploy on dokku, see the instructions here:
 
 You will need the environment variables documented in the file `/docs/environment-variables.md` in this repo.
 
-You will also need the command:
+To include deployed commit information in Developer Info, use the recommended command:
 
-* <tt>dokku git:set <i>appname</i> keep-git-dir true</tt>
+We also recommend (but no longer require) this command:
+
+<tt>dokku git:set <i>appname</i> keep-git-dir true</tt>
+
+This keeps the .git directory in the Docker build so the Developer page can show the deployed commit id. Without it, the build and deploy still succeed, but the commit id and message show as unknown. See Commit info and keep-git-dir below.
+
+## Docker build layout
+
+The Dockerfile builds with Maven 3.9.16 and Temurin JDK 25, then copies the packaged jar and
+`startup.sh` into a Temurin 25 JRE image. BuildKit caches Maven downloads and npm downloads;
+separate dependency layers run before application source is copied. `.dockerignore` excludes
+local credentials, generated output, and development files, but retains `.git` for build metadata.
+Without `.git`, builds and startup still succeed; commit fields display `unknown`.
+The runtime starts `/app/happycows.jar` through
+`startup.sh`, which maps the database URL and uses `exec` to forward signals to Java.
+
+Node comes from the Maven production profile, with its version set in `pom.xml`. Docker installs
+it in `/opt/frontend` before `clean package` and uses `cache.use=true` only for that final build.
+Normal production Maven builds keep `cache.use=false`. See [version maintenance](./versions.md)
+for the image pins and frontend installation settings.
+
+## Verifying the Docker build
+
+Run from the repository root with Docker running and Buildx available. A fresh, dedicated builder
+provides empty build and download caches for the cold run without clearing other projects' caches:
+
+```bash
+buildcheck="happycows-check-$(date +%s)"
+docker buildx create --name "$buildcheck" --driver docker-container
+build_image() {
+  time docker buildx build --builder "$buildcheck" --load --progress=plain \
+    --tag happycows:check .
+}
+build_image > docker-cold.log 2>&1
+build_image > docker-warm.log 2>&1
+```
+
+After making an intended backend or frontend source edit, run `build_image > docker-source-change.log 2>&1`
+in the same shell. Compare the timings at the end of the three logs and the `CACHED` steps: source
+changes should reuse dependency layers when `pom.xml` and frontend package manifests are unchanged.
+Inspect the logs for `sun.misc.Unsafe` warnings; do not suppress warnings to pass this check.
+`--no-cache` alone does not empty BuildKit download cache mounts.
+
+For a smoke test, prepare a local `.env` in Docker's env-file format with the deployment's database,
+OAuth, and [MongoDB settings](./mongodb.md). Supply a container-reachable `DATABASE_URL` (or
+`DOKKU_POSTGRES_AQUA_URL`, which takes precedence); `startup.sh` uses PostgreSQL username `postgres`.
+See [environment variable guidance](./environment-variables.md) and [OAuth setup](./oauth.md).
+
+```bash
+docker run --detach --name happycows-check --publish 127.0.0.1:8080:8080 \
+  --env-file .env happycows:check
+curl --fail --retry 30 --retry-connrefused --retry-delay 2 \
+  http://localhost:8080/ > /tmp/happycows-index.html
+grep 'id="root"' /tmp/happycows-index.html
+docker logs happycows-check
+```
+
+Confirm the page loads its bundled frontend assets in a browser and review the application logs
+for startup errors before cleaning up:
+
+```bash
+docker stop happycows-check
+docker rm happycows-check
+docker buildx rm "$buildcheck"
+```
+
+Record the actual build results and timings when running this verification procedure.
 
 # Short Version
 
@@ -55,4 +121,14 @@ dokku letsencrypt:set happycows-qa email yourEmail@ucsb.edu
 dokku letsencrypt:enable happycows-qa
 dokku config:set happycows-qa --no-restart GOOGLE_CLIENT_ID=get-value-from-google
 dokku config:set happycows-qa --no-restart GOOGLE_CLIENT_SECRET=get-value-from-google
+```
+
+# Changing `keep-git-dir`
+
+To check or change the setting on an existing app:
+
+```
+dokku git:report happycows --git-keep-git-dir
+dokku git:set happycows keep-git-dir true
+dokku ps:rebuild happycows
 ```

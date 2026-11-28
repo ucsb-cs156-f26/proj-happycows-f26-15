@@ -18,13 +18,14 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import org.springframework.dao.DataIntegrityViolationException;
+import edu.ucsb.cs156.happiercows.services.ChatFilterService;
 
 /** Admin-only API for maintaining the list of words censored in chat. */
-<span class="fc" id="L23">@Slf4j</span>
+<span class="fc" id="L24">@Slf4j</span>
 @Tag(name = &quot;Banned Words&quot;)
 @RequestMapping(&quot;/api/admin/bannedwords&quot;)
 @RestController
-<span class="fc" id="L27">public class BannedWordsController extends ApiController {</span>
+<span class="fc" id="L28">public class BannedWordsController extends ApiController {</span>
 
     @Autowired
     private BannedWordRepository bannedWordRepository;
@@ -33,7 +34,7 @@ import org.springframework.dao.DataIntegrityViolationException;
     @PreAuthorize(&quot;hasRole('ROLE_ADMIN')&quot;)
     @GetMapping(&quot;/all&quot;)
     public Iterable&lt;BannedWord&gt; allBannedWords() {
-<span class="fc" id="L36">        return bannedWordRepository.findAll();</span>
+<span class="fc" id="L37">        return bannedWordRepository.findAll();</span>
     }
 
     @Operation(summary = &quot;Add a banned word (stored trimmed and lowercase)&quot;)
@@ -41,23 +42,23 @@ import org.springframework.dao.DataIntegrityViolationException;
     @PostMapping(&quot;/post&quot;)
     public ResponseEntity&lt;Object&gt; postBannedWord(
             @Parameter(name = &quot;word&quot;) @RequestParam String word) {
-<span class="fc" id="L44">        String normalized = word.trim().toLowerCase();</span>
+<span class="fc" id="L45">        String normalized = ChatFilterService.normalize(word);</span>
 
-<span class="fc bfc" id="L46" title="All 2 branches covered.">        if (normalized.isEmpty()) {</span>
-<span class="fc" id="L47">            return ResponseEntity.badRequest().body(genericMessage(&quot;Word must not be blank&quot;));</span>
+<span class="fc bfc" id="L47" title="All 2 branches covered.">        if (normalized.isEmpty()) {</span>
+<span class="fc" id="L48">            return ResponseEntity.badRequest().body(genericMessage(&quot;Word must not be blank&quot;));</span>
         }
-<span class="fc bfc" id="L49" title="All 2 branches covered.">        if (bannedWordRepository.findByWord(normalized).isPresent()) {</span>
-<span class="fc" id="L50">            return ResponseEntity.badRequest()</span>
-<span class="fc" id="L51">                    .body(genericMessage(&quot;Word '%s' is already banned&quot;.formatted(normalized)));</span>
+<span class="fc bfc" id="L50" title="All 2 branches covered.">        if (bannedWordRepository.findByWord(normalized).isPresent()) {</span>
+<span class="fc" id="L51">            return ResponseEntity.badRequest()</span>
+<span class="fc" id="L52">                    .body(genericMessage(&quot;Word '%s' is already banned&quot;.formatted(normalized)));</span>
         }
 
         try {
-<span class="fc" id="L55">            BannedWord saved = bannedWordRepository.save(BannedWord.builder().word(normalized).build());</span>
-<span class="fc" id="L56">            return ResponseEntity.ok(saved);</span>
-<span class="fc" id="L57">        } catch (DataIntegrityViolationException e) {</span>
+<span class="fc" id="L56">            BannedWord saved = bannedWordRepository.save(BannedWord.builder().word(normalized).build());</span>
+<span class="fc" id="L57">            return ResponseEntity.ok(saved);</span>
+<span class="fc" id="L58">        } catch (DataIntegrityViolationException e) {</span>
             // Another request inserted the same word between findByWord() and save()
-<span class="fc" id="L59">            return ResponseEntity.badRequest()</span>
-<span class="fc" id="L60">                    .body(genericMessage(&quot;Word '%s' is already banned&quot;.formatted(normalized)));</span>
+<span class="fc" id="L60">            return ResponseEntity.badRequest()</span>
+<span class="fc" id="L61">                    .body(genericMessage(&quot;Word '%s' is already banned&quot;.formatted(normalized)));</span>
         }
     }
 
@@ -66,11 +67,11 @@ import org.springframework.dao.DataIntegrityViolationException;
     @DeleteMapping(&quot;&quot;)
     public Object deleteBannedWord(
             @Parameter(name = &quot;id&quot;) @RequestParam Long id) {
-<span class="fc" id="L69">        BannedWord bannedWord = bannedWordRepository.findById(id)</span>
-<span class="fc" id="L70">                .orElseThrow(() -&gt; new EntityNotFoundException(BannedWord.class, id));</span>
+<span class="fc" id="L70">        BannedWord bannedWord = bannedWordRepository.findById(id)</span>
+<span class="fc" id="L71">                .orElseThrow(() -&gt; new EntityNotFoundException(BannedWord.class, id));</span>
 
-<span class="fc" id="L72">        bannedWordRepository.delete(bannedWord);</span>
-<span class="fc" id="L73">        return genericMessage(&quot;BannedWord with id %s deleted&quot;.formatted(id));</span>
+<span class="fc" id="L73">        bannedWordRepository.delete(bannedWord);</span>
+<span class="fc" id="L74">        return genericMessage(&quot;BannedWord with id %s deleted&quot;.formatted(id));</span>
     }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.15.202606040825</span></div></body></html>

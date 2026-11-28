@@ -36,6 +36,13 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 
+import static org.mockito.ArgumentMatchers.anyString;
+
+import edu.ucsb.cs156.happiercows.models.CensorResult;
+import edu.ucsb.cs156.happiercows.services.ChatFilterService;
+import org.junit.jupiter.api.BeforeEach;
+import org.mockito.ArgumentCaptor;
+
 import edu.ucsb.cs156.happiercows.ControllerTestCase;
 import edu.ucsb.cs156.happiercows.repositories.ChatMessageRepository;
 import edu.ucsb.cs156.happiercows.entities.ChatMessage;
@@ -58,6 +65,15 @@ public class ChatMessageControllerTests extends ControllerTestCase {
 
     @MockBean
     UserRepository userRepository;
+
+    @MockBean
+    ChatFilterService chatFilterService;
+
+    @BeforeEach
+    public void setUpChatFilter() {
+        when(chatFilterService.censor(anyString()))
+            .thenAnswer(invocation -> new CensorResult(invocation.getArgument(0), false));
+    }
 
     @Autowired
     ObjectMapper mapper;
@@ -339,6 +355,60 @@ public class ChatMessageControllerTests extends ControllerTestCase {
         String expectedResponseString = mapper.writeValueAsString(chatMessage);
         log.info("Got back from API: {}",responseString);
         assertEquals(expectedResponseString, responseString);
+    }
+
+    @WithMockUser(roles = {"USER"})
+    @Test
+    public void postedMessageWithBannedWordIsSavedAndReturnedCensored() throws Exception {
+
+        // arrange
+        Long gameId = 1L;
+        Long userId = 1L;
+        String content = "darn it";
+
+        Farmer farmer = Farmer.builder()
+                .game(Game.builder().showChat(true).build())
+                .build();
+        when(farmerRepository.findByGameIdAndUserId(gameId, userId)).thenReturn(Optional.of(farmer));
+        when(chatFilterService.censor("darn it")).thenReturn(new CensorResult("**** it", true));
+
+        // act
+        MvcResult response = mockMvc.perform(post("/api/chat/post?gameId={gameId}&content={content}", gameId, content).with(csrf()))
+            .andExpect(status().isOk()).andReturn();
+
+        // assert
+        verify(chatFilterService, times(1)).censor("darn it");
+        ArgumentCaptor<ChatMessage> saved = ArgumentCaptor.forClass(ChatMessage.class);
+        verify(chatMessageRepository, times(1)).save(saved.capture());
+        assertEquals("**** it", saved.getValue().getMessage());
+
+        ChatMessage returned = mapper.readValue(response.getResponse().getContentAsString(), ChatMessage.class);
+        assertEquals("**** it", returned.getMessage());
+    }
+
+    @WithMockUser(roles = {"USER"})
+    @Test
+    public void postedCleanMessageIsSavedUnchanged() throws Exception {
+
+        // arrange
+        Long gameId = 1L;
+        Long userId = 1L;
+        String content = "Hello world!";
+
+        Farmer farmer = Farmer.builder()
+                .game(Game.builder().showChat(true).build())
+                .build();
+        when(farmerRepository.findByGameIdAndUserId(gameId, userId)).thenReturn(Optional.of(farmer));
+
+        // act
+        mockMvc.perform(post("/api/chat/post?gameId={gameId}&content={content}", gameId, content).with(csrf()))
+            .andExpect(status().isOk()).andReturn();
+
+        // assert
+        verify(chatFilterService, times(1)).censor("Hello world!");
+        ArgumentCaptor<ChatMessage> saved = ArgumentCaptor.forClass(ChatMessage.class);
+        verify(chatMessageRepository, times(1)).save(saved.capture());
+        assertEquals("Hello world!", saved.getValue().getMessage());
     }
 
     @WithMockUser(roles = {"USER"})
